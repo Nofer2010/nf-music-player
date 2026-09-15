@@ -1,0 +1,17 @@
+{
+    "name": "NF Musik Player Pro",
+    "short_name": "NF Music",
+    "description": "Pemutar musik dan downloader YouTube mandiri",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#0b0614",
+    "theme_color": "#0b0614",
+    "icons": [
+        {
+            "src": "252911.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

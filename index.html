@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NF Musik Player</title>
+        <!-- PWA Manifest & Theme Color -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b0614">
+    <link rel="apple-touch-icon" href="252911.png">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Caveat -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        cursive: ['Caveat', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main, #0b0614);
+            color: #f3f4f6;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.3s ease;
+        }
+        .cursive-title {
+            font-family: 'Caveat', cursive;
+            letter-spacing: 0.5px;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        .glass-panel {
+            background: var(--bg-card, rgba(22, 13, 38, 0.85));
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color, rgba(236, 72, 153, 0.15));
+            transition: background 0.3s ease, border 0.3s ease;
+        }
+        .neon-glow {
+            box-shadow: 0 0 20px var(--glow-color, rgba(236, 72, 153, 0.25));
+        }
+        .theme-gradient {
+            background: var(--gradient-main, linear-gradient(135deg, #ec4899 0%, #a855f7 100%));
+        }
+        .playlist-card-gradient {
+            background: var(--gradient-playlist, linear-gradient(145deg, #d946ef 0%, #7c3aed 50%, #4c1d95 100%));
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .radio-pulse {
+            animation: pulse-ring 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-32 flex flex-col justify-between" id="appBody" style="--bg-main: #0b0614; --bg-card: rgba(22, 13, 38, 0.85); --border-color: rgba(236, 72, 153, 0.15); --glow-color: rgba(236, 72, 153, 0.25); --gradient-main: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-40 glass-panel px-4 py-3 flex items-center justify-between border-b border-purple-900/40">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl overflow-hidden neon-glow flex items-center justify-center border border-pink-500/40">
+                <img src="252911.png" alt="NF Music Logo" class="w-full h-full object-cover">
+            </div>
+            <h1 class="text-2xl font-bold cursive-title bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+                NF Musik Player
+            </h1>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="openYoutubeModal()" title="Import dari YouTube" class="w-9 h-9 rounded-xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-pink-400 hover:bg-purple-900/60 transition">
+                <i class="fa-solid fa-cloud-arrow-down text-sm"></i>
+            </button>
+            <label title="Muat Semua File MP3 Perangkat" class="w-9 h-9 rounded-xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-pink-400 hover:bg-purple-900/60 transition cursor-pointer">
+                <i class="fa-solid fa-folder-open text-sm"></i>
+                <input type="file" id="localFileInput" accept="audio/*" multiple class="hidden" onchange="handleLocalFiles(event)">
+            </label>
+            <button onclick="refreshLibrary()" title="Segarkan" class="w-9 h-9 rounded-xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-pink-400 hover:bg-purple-900/60 transition">
+                <i class="fa-solid fa-rotate-right text-sm"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-md w-full mx-auto px-4 pt-4">
+
+        <!-- TAB 1: BERANDA -->
+        <div id="view-beranda" class="space-y-6">
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-pink-400">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" id="searchInput" oninput="filterSongs()" placeholder="Cari lagu, artis, atau album..." 
+                    class="w-full pl-11 pr-4 py-3 bg-[#160d26] border border-purple-900/50 rounded-2xl text-sm focus:outline-none focus:border-pink-500 text-white placeholder-purple-400/60 shadow-inner">
+            </div>
+
+            <div class="flex space-x-3 overflow-x-auto pb-1 scrollbar-none">
+                <button onclick="setFilter('semua')" id="pill-semua" class="px-5 py-2 rounded-full text-sm font-medium theme-gradient text-white shadow-lg whitespace-nowrap transition">
+                    Semua Lagu <span id="count-semua" class="ml-1 text-xs bg-black/20 px-1.5 py-0.5 rounded-full">0</span>
+                </button>
+                <button onclick="setFilter('favorit')" id="pill-favorit" class="px-5 py-2 rounded-full text-sm font-medium bg-[#160d26] border border-purple-900/50 text-purple-300 hover:text-white whitespace-nowrap transition">
+                    Favorit <span id="count-favorit" class="ml-1 text-xs bg-purple-900/50 px-1.5 py-0.5 rounded-full">0</span>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold cursive-title flex items-center text-pink-300">
+                        <i class="fa-solid fa-music mr-2 text-sm"></i> Playlist Populer
+                    </h2>
+                    <span class="text-xs text-purple-400 font-medium">Top <span id="playlist-count">2</span></span>
+                </div>
+                <div class="grid grid-cols-2 gap-3" id="popularPlaylistsContainer"></div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold cursive-title text-pink-300">
+                        Daftar Lagu (<span id="song-list-count">0</span>)
+                    </h2>
+                    <div class="flex items-center space-x-2 text-purple-400 text-xs">
+                        <button onclick="sortSongs('title')" class="p-1.5 bg-[#160d26] rounded-lg border border-purple-900/40 hover:text-pink-300" title="Urutkan Judul"><i class="fa-solid fa-arrow-down-a-z"></i></button>
+                        <button onclick="sortSongs('duration')" class="p-1.5 bg-[#160d26] rounded-lg border border-purple-900/40 hover:text-pink-300" title="Urutkan Durasi"><i class="fa-solid fa-clock"></i></button>
+                        <button onclick="toggleShuffle()" id="shuffleBtn" class="p-1.5 bg-[#160d26] rounded-lg border border-purple-900/40 hover:text-pink-300" title="Acak"><i class="fa-solid fa-shuffle"></i></button>
+                        <button onclick="playAll()" class="w-8 h-8 rounded-full theme-gradient text-white flex items-center justify-center shadow-md"><i class="fa-solid fa-play text-xs ml-0.5"></i></button>
+                    </div>
+                </div>
+                <div class="space-y-2.5" id="songsContainer"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PLAYLIST -->
+        <div id="view-playlist" class="space-y-4 hidden">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold cursive-title text-pink-400 flex items-center">
+                    <i class="fa-solid fa-list-ul mr-2 text-lg"></i> Daftar Playlist
+                </h2>
+                <button onclick="openCreatePlaylistModal()" class="w-9 h-9 rounded-xl theme-gradient flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-plus text-sm"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-3" id="fullPlaylistContainer"></div>
+        </div>
+
+        <!-- TAB 3: SERING DIPUTAR -->
+        <div id="view-sering" class="space-y-4 hidden">
+            <div class="flex items-center space-x-2">
+                <span class="text-red-500 text-xl animate-pulse"><i class="fa-solid fa-fire"></i></span>
+                <h2 class="text-2xl font-bold cursive-title text-pink-400">Paling Sering Diputar</h2>
+            </div>
+            <p class="text-xs text-purple-300/70">Lagu yang paling sering Anda dengarkan dalam sesi ini.</p>
+            <div class="space-y-2.5" id="mostPlayedContainer"></div>
+        </div>
+
+        <!-- TAB 4: RADIO FM INDONESIA -->
+        <div id="view-radio" class="space-y-5 hidden">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold cursive-title text-pink-400 flex items-center">
+                    <i class="fa-solid fa-tower-broadcast mr-2 text-lg"></i> Radio FM Indonesia
+                </h2>
+                <span class="px-2.5 py-1 bg-red-500/20 text-red-400 border border-red-500/40 rounded-full text-xs font-semibold animate-pulse">LIVE</span>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl text-center relative overflow-hidden shadow-xl border border-purple-500/30">
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl"></div>
+                <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl"></div>
+                
+                <div class="relative w-28 h-28 mx-auto mb-4 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border border-pink-500/30 radio-pulse"></div>
+                    <div class="w-24 h-24 rounded-full theme-gradient flex items-center justify-center text-white shadow-lg">
+                        <i id="radioIcon" class="fa-solid fa-broadcast-tower text-3xl"></i>
+                    </div>
+                </div>
+
+                <h3 id="currentRadioName" class="text-lg font-bold text-white mb-1">Pilih Stasiun Radio</h3>
+                <p id="currentRadioGenre" class="text-xs text-pink-400 mb-4">Siap untuk streaming langsung</p>
+
+                <div class="flex items-center justify-center space-x-6 mb-4">
+                    <button onclick="prevRadio()" class="w-10 h-10 rounded-full bg-purple-900/40 border border-purple-700/50 flex items-center justify-center text-pink-300 hover:scale-105 transition"><i class="fa-solid fa-backward-step"></i></button>
+                    <button onclick="toggleRadioPlay()" id="radioPlayBtn" class="w-14 h-14 rounded-full theme-gradient flex items-center justify-center text-white shadow-lg hover:scale-105 transition">
+                        <i class="fa-solid fa-play text-xl ml-0.5" id="radioPlayIcon"></i>
+                    </button>
+                    <button onclick="nextRadio()" class="w-10 h-10 rounded-full bg-purple-900/40 border border-purple-700/50 flex items-center justify-center text-pink-300 hover:scale-105 transition"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+
+                <div class="flex items-center space-x-3 px-4">
+                    <i class="fa-solid fa-volume-low text-purple-400 text-xs"></i>
+                    <input type="range" min="0" max="1" step="0.05" value="0.8" onchange="setRadioVolume(this.value)" class="w-full accent-pink-500 cursor-pointer">
+                    <i class="fa-solid fa-volume-high text-purple-400 text-xs"></i>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <h3 class="text-sm font-semibold text-purple-300">Daftar Saluran Radio FM Indonesia</h3>
+                <div class="space-y-2" id="radioStationsList"></div>
+            </div>
+        </div>
+
+        <!-- TAB 5: TEMA & TENTANG PEMBUAT -->
+        <div id="view-tema" class="space-y-5 hidden">
+            <h2 class="text-2xl font-bold cursive-title text-pink-400 flex items-center">
+                <i class="fa-solid fa-palette mr-2 text-lg"></i> Tema & Tampilan
+            </h2>
+            <p class="text-xs text-purple-300/70">Sesuaikan warna dan suasana pemutar musik NF Anda.</p>
+            
+            <div class="space-y-3">
+                <div onclick="setThemeAccent('pink')" id="theme-pink" class="glass-panel p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-pink-500/40 hover:bg-purple-950/40 transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-purple-500"></div>
+                        <div>
+                            <h4 class="font-semibold text-sm text-white">Dark Neon (Default)</h4>
+                            <p class="text-xs text-purple-300">Nuansa gelap dengan aksen pink magenta menyala.</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-circle-check text-pink-400 text-lg theme-check-pink"></i>
+                </div>
+
+                <div onclick="setThemeAccent('emerald')" id="theme-emerald" class="glass-panel p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-purple-900/40 hover:bg-purple-950/40 transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600"></div>
+                        <div>
+                            <h4 class="font-semibold text-sm text-white">Emerald Forest</h4>
+                            <p class="text-xs text-purple-300">Nuansa hijau zamrud elegan ala alam.</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-circle-check text-emerald-400 text-lg opacity-0 theme-check-emerald"></i>
+                </div>
+
+                <div onclick="setThemeAccent('gold')" id="theme-gold" class="glass-panel p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-purple-900/40 hover:bg-purple-950/40 transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600"></div>
+                        <div>
+                            <h4 class="font-semibold text-sm text-white">Retro Gold</h4>
+                            <p class="text-xs text-purple-300">Sentuhan warna emas mewah klasik.</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-circle-check text-amber-400 text-lg opacity-0 theme-check-gold"></i>
+                </div>
+            </div>
+
+            <!-- Tentang Pembuat (Fer Tech Media) -->
+            <div class="space-y-3 pt-2">
+                <h3 class="text-sm font-semibold text-pink-300 uppercase tracking-wider italic">| Tentang Pembuat</h3>
+                <div class="glass-panel p-5 rounded-3xl flex items-center space-x-4 border border-purple-500/30 relative overflow-hidden">
+                    <div class="w-16 h-16 rounded-full overflow-hidden shadow-lg flex-shrink-0 border border-pink-500/40">
+                        <img src="94867.jpg" alt="Foto Pembuat" class="w-full h-full object-cover">
+                    </div>
+                    <div class="space-y-1 text-xs text-purple-200 overflow-hidden">
+                        <h4 class="font-bold text-sm text-white flex items-center space-x-1">
+                            <span>Fer Tech Media</span>
+                            <i class="fa-solid fa-circle-check text-pink-400 text-xs"></i>
+                        </h4>
+                        <p class="text-pink-400 italic">Pengembang Aplikasi NF Musik Player</p>
+                        <p>WhatsApp: <a href="https://wa.me/6285719134016" target="_blank" class="text-pink-300 underline">085719134016</a></p>
+                        <p>Website: <a href="https://fer-tech.myr.id" target="_blank" class="text-pink-300 underline">Fer-tech.myr.id</a></p>
+                        <p>Email: <a href="mailto:Ferdianocktavianto90@gmail.com" class="text-pink-300 underline truncate block">Ferdianocktavianto90@gmail.com</a></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-panel p-4 rounded-2xl space-y-2">
+                <h3 class="text-sm font-semibold text-white">Informasi Sistem</h3>
+                <div class="text-xs text-purple-300 space-y-1">
+                    <p><strong>Nama Aplikasi:</strong> NF Musik Player Pro</p>
+                    <p><strong>Versi:</strong> 3.2.0 (Fixed HTTPS Radio & Secure Stream)</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Audio Player Bar -->
+    <div id="playerBar" class="fixed bottom-16 left-0 right-0 z-30 max-w-md mx-auto px-4">
+        <div class="glass-panel rounded-2xl p-3 shadow-2xl border border-pink-500/20 flex flex-col space-y-2">
+            <div class="flex items-center space-x-2 text-xs text-purple-300">
+                <span id="currentTime">00:00</span>
+                <input type="range" id="progressBar" min="0" max="100" value="0" oninput="seekAudio(this.value)" class="w-full h-1 bg-purple-900/60 rounded-lg appearance-none cursor-pointer accent-pink-500">
+                <span id="totalDuration">00:00</span>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3 overflow-hidden cursor-pointer">
+                    <div class="w-11 h-11 rounded-xl theme-gradient flex items-center justify-center flex-shrink-0 neon-glow">
+                        <i class="fa-solid fa-music text-white text-sm" id="playerThumbIcon"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <h4 id="playerSongTitle" class="text-sm font-semibold text-white truncate">Belum ada lagu</h4>
+                        <p id="playerArtist" class="text-xs text-pink-400 truncate">Pilih atau unduh musik</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3 text-white">
+                    <button onclick="toggleLikeCurrent()" class="text-purple-400 hover:text-pink-400 transition" id="playerLikeBtn">
+                        <i class="fa-regular fa-heart text-base"></i>
+                    </button>
+                    <button onclick="prevSong()" class="text-purple-300 hover:text-white transition p-1">
+                        <i class="fa-solid fa-backward-step text-base"></i>
+                    </button>
+                    <button onclick="togglePlay()" class="w-10 h-10 rounded-full theme-gradient flex items-center justify-center text-white shadow-lg hover:scale-105 transition">
+                        <i class="fa-solid fa-play text-sm ml-0.5" id="mainPlayIcon"></i>
+                    </button>
+                    <button onclick="nextSong()" class="text-purple-300 hover:text-white transition p-1">
+                        <i class="fa-solid fa-forward-step text-base"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-purple-900/40 py-2.5 px-4 flex items-center justify-around">
+        <button onclick="switchTab('beranda')" id="nav-beranda" class="flex flex-col items-center text-pink-400 transition">
+            <i class="fa-solid fa-house text-lg mb-1"></i>
+            <span class="text-[10px] font-medium cursive-title text-base">Beranda</span>
+        </button>
+        <button onclick="switchTab('playlist')" id="nav-playlist" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
+            <i class="fa-solid fa-music text-lg mb-1"></i>
+            <span class="text-[10px] font-medium cursive-title text-base">Playlist</span>
+        </button>
+        <button onclick="switchTab('sering')" id="nav-sering" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
+            <i class="fa-solid fa-fire text-lg mb-1"></i>
+            <span class="text-[10px] font-medium cursive-title text-base">Sering Diputar</span>
+        </button>
+        <button onclick="switchTab('radio')" id="nav-radio" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
+            <i class="fa-solid fa-tower-broadcast text-lg mb-1"></i>
+            <span class="text-[10px] font-medium cursive-title text-base">Radio FM</span>
+        </button>
+        <button onclick="switchTab('tema')" id="nav-tema" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
+            <i class="fa-solid fa-palette text-lg mb-1"></i>
+            <span class="text-[10px] font-medium cursive-title text-base">Tema</span>
+        </button>
+    </nav>
+
+    <!-- YouTube Importer Modal -->
+    <div id="youtubeModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 space-y-4 border border-pink-500/30 relative">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold cursive-title text-pink-400 flex items-center">
+                    <i class="fa-brands fa-youtube mr-2 text-red-500"></i> Download Audio YouTube
+                </h3>
+                <button onclick="closeYoutubeModal()" class="text-purple-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-purple-300">Masukkan link YouTube / YouTube Music untuk mengunduh lagu kualitas tinggi langsung ke aplikasi.</p>
+            
+            <div class="space-y-3">
+                <input type="text" id="youtubeUrlInput" placeholder="https://youtu.be/..." class="w-full px-4 py-3 bg-[#0b0614] border border-purple-900/60 rounded-2xl text-xs text-white placeholder-purple-400/50 focus:outline-none focus:border-pink-500">
+                
+                <button onclick="processYoutubeDownload()" class="w-full py-3 theme-gradient rounded-2xl text-white font-semibold text-sm shadow-lg hover:opacity-95 transition flex items-center justify-center">
+                    <i class="fa-solid fa-cloud-arrow-down mr-2"></i> Download Audio
+                </button>
+            </div>
+            <div id="downloadStatus" class="text-xs text-center text-pink-300 hidden">Menghubungkan ke server YouTube...</div>
+        </div>
+    </div>
+
+    <!-- Create Playlist Modal -->
+    <div id="playlistModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 space-y-4 border border-pink-500/30">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold cursive-title text-pink-400">Buat Playlist Baru</h3>
+                <button onclick="closeCreatePlaylistModal()" class="text-purple-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <input type="text" id="newPlaylistName" placeholder="Nama Playlist (cth: Santai Sore)" class="w-full px-4 py-3 bg-[#0b0614] border border-purple-900/60 rounded-2xl text-xs text-white placeholder-purple-400/50 focus:outline-none focus:border-pink-500">
+            <button onclick="saveNewPlaylist()" class="w-full py-3 theme-gradient rounded-2xl text-white font-semibold text-sm shadow-lg">
+                Simpan Playlist
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-[#160d26] border border-pink-500/40 px-5 py-3 rounded-2xl shadow-2xl text-xs text-white flex items-center space-x-3 transition-all duration-300 opacity-0 pointer-events-none">
+        <i class="fa-solid fa-circle-check text-pink-400 text-base"></i>
+        <span id="toastMsg">Notifikasi</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        let songs = JSON.parse(localStorage.getItem('nf_songs')) || [];
+
+        let playlists = [
+            { id: 1, name: "Favorit Saya", count: 0, imageIcon: "fa-heart" },
+            { id: 2, name: "Santai Sore", count: 0, imageIcon: "fa-mug-hot" }
+        ];
+
+        // Stasiun Radio dengan link streaming aman (HTTPS / Direct Stream)
+        let radioStations = [
+            { id: 1, name: "RRI Pro 3 Nasional", genre: "Berita & Musik Indonesia 24 Jam", url: "https://stream-mz.rri.co.id/pro3", icon: "fa-tower-broadcast" },
+            { id: 2, name: "Radio Elshinta Jakarta", genre: "Berita Terkini & Talkshow", url: "https://live.elshinta.com/stream", icon: "fa-microphone-lines" },
+            { id: 3, name: "Radio Rodja Bogor", genre: "Kajian Islam & Religi", url: "https://live.radiorodja.com/stream.mp3", icon: "fa-book-quran" },
+            { id: 4, name: "Delta FM Jakarta", genre: "Lagu Enak 80an - Sekarang", url: "https://radio.streamingindonesia.com/proxy/delta?mp=/stream", icon: "fa-radio" }
+        ];
+
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        let currentFilter = 'semua';
+        let currentTab = 'beranda';
+        let isShuffle = false;
+        let activeRadioIndex = null;
+        let isRadioPlaying = false;
+
+        const audioElement = new Audio();
+        const radioElement = new Audio();
+        radioElement.crossOrigin = "anonymous";
+
+        window.onload = function() {
+            renderSongs();
+            renderPlaylists();
+            renderMostPlayed();
+            renderRadioStations();
+            updatePlayerBar();
+            
+            audioElement.ontimeupdate = function() {
+                if (!audioElement.paused && audioElement.duration) {
+                    const progress = (audioElement.currentTime / audioElement.duration) * 100;
+                    document.getElementById('progressBar').value = progress || 0;
+                    document.getElementById('currentTime').innerText = formatTime(audioElement.currentTime);
+                }
+            };
+
+            audioElement.onended = function() {
+                nextSong();
+            };
+        };
+
+        function saveSongsToStorage() {
+            localStorage.setItem('nf_songs', JSON.stringify(songs));
+        }
+
+        function formatTime(secs) {
+            if (isNaN(secs)) return "00:00";
+            const m = Math.floor(secs / 60);
+            const s = Math.floor(secs % 60);
+            return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            ['beranda', 'playlist', 'sering', 'radio', 'tema'].forEach(t => {
+                const el = document.getElementById(`view-${t}`);
+                const nav = document.getElementById(`nav-${t}`);
+                if (t === tabId) {
+                    el.classList.remove('hidden');
+                    nav.classList.remove('text-purple-400/70');
+                    nav.classList.add('text-pink-400');
+                } else {
+                    el.classList.add('hidden');
+                    nav.classList.remove('text-pink-400');
+                    nav.classList.add('text-purple-400/70');
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderSongs() {
+            const container = document.getElementById('songsContainer');
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = songs.filter(song => {
+                const matchQuery = song.title.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query);
+                if (currentFilter === 'favorit') return matchQuery && song.liked;
+                return matchQuery;
+            });
+
+            document.getElementById('song-list-count').innerText = filtered.length;
+            document.getElementById('count-semua').innerText = songs.length;
+            document.getElementById('count-favorit').innerText = songs.filter(s => s.liked).length;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-purple-400 text-xs">Pustaka kosong. Silakan download dari YouTube atau muat file lokal.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map((song) => {
+                const realIndex = songs.findIndex(s => s.id === song.id);
+                const isCurrent = realIndex === currentSongIndex;
+                return `
+                    <div onclick="selectAndPlaySong(${realIndex})" class="glass-panel p-3 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-purple-950/40 transition border ${isCurrent ? 'border-pink-500 shadow-lg' : 'border-purple-900/30'}">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl ${isCurrent ? 'theme-gradient' : 'bg-purple-950/80 border border-purple-800/40'} flex items-center justify-center text-pink-300">
+                                <i class="fa-solid ${isCurrent && isPlaying ? 'fa-volume-high animate-bounce' : 'fa-music'} text-xs"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-white truncate max-w-[180px]">${song.title}</h4>
+                                <p class="text-xs text-pink-400/80 truncate max-w-[180px]">${song.artist}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs text-purple-400 font-mono">${song.duration}</span>
+                            <button onclick="event.stopPropagation(); toggleLike(${song.id})" class="text-purple-400 hover:text-pink-400 p-1">
+                                <i class="fa-${song.liked ? 'solid text-pink-500' : 'regular'} fa-heart text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPlaylists() {
+            const container = document.getElementById('popularPlaylistsContainer');
+            const fullContainer = document.getElementById('fullPlaylistContainer');
+            document.getElementById('playlist-count').innerText = playlists.length;
+
+            const html = playlists.map((pl) => `
+                <div class="playlist-card-gradient p-4 rounded-2xl flex flex-col justify-between h-32 relative overflow-hidden shadow-lg border border-pink-500/20 cursor-pointer group hover:scale-[1.02] transition">
+                    <div class="absolute right-3 top-3 w-7 h-7 bg-black/30 backdrop-blur-md rounded-lg flex items-center justify-center text-white text-xs">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                    <div class="mt-2">
+                        <i class="fa-solid ${pl.imageIcon || 'fa-music'} text-white/80 text-xl mb-1"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm text-white truncate">${pl.name}</h4>
+                        <p class="text-[11px] text-pink-200">${songs.length} lagu</p>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+            fullContainer.innerHTML = html;
+        }
+
+        function renderMostPlayed() {
+            const container = document.getElementById('mostPlayedContainer');
+            const sorted = [...songs].sort((a, b) => b.plays - a.plays);
+
+            if (sorted.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-purple-400 text-xs">Belum ada riwayat pemutaran musik.</div>`;
+                return;
+            }
+
+            container.innerHTML = sorted.map((song, idx) => `
+                <div onclick="selectAndPlaySong(${songs.findIndex(s => s.id === song.id)})" class="glass-panel p-3.5 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-purple-950/40 transition border border-purple-900/30">
+                    <div class="flex items-center space-x-3">
+                        <div class="px-2.5 py-1 bg-gradient-to-r from-amber-500 to-pink-500 rounded-lg text-white font-bold text-xs shadow-md">
+                            #${idx + 1}
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-white">${song.title}</h4>
+                            <p class="text-xs text-pink-400">${song.artist} • <span class="text-purple-300">${song.plays}x diputar</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xs text-purple-400 font-mono">${song.duration}</span>
+                        <button onclick="event.stopPropagation(); toggleLike(${song.id})" class="text-purple-400 hover:text-pink-400 p-1">
+                            <i class="fa-${song.liked ? 'solid text-pink-500' : 'regular'} fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderRadioStations() {
+            const container = document.getElementById('radioStationsList');
+            container.innerHTML = radioStations.map((station, idx) => `
+                <div onclick="playRadioStation(${idx})" class="glass-panel p-3.5 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-purple-950/50 transition border ${activeRadioIndex === idx ? 'border-pink-500 bg-purple-950/40' : 'border-purple-900/30'}">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl theme-gradient flex items-center justify-center text-white">
+                            <i class="fa-solid ${station.icon} text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-semibold text-white">${station.name}</h4>
+                            <p class="text-xs text-pink-400">${station.genre}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        ${activeRadioIndex === idx && isRadioPlaying ? '<span class="flex h-3 w-3 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span></span>' : '<i class="fa-solid fa-play text-xs text-purple-400"></i>'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectAndPlaySong(index) {
+            if (songs.length === 0) return;
+            if (isRadioPlaying) {
+                radioElement.pause();
+                isRadioPlaying = false;
+                updateRadioPlayButton();
+            }
+
+            currentSongIndex = index;
+            const song = songs[currentSongIndex];
+            song.plays += 1;
+            saveSongsToStorage();
+            
+            audioElement.src = song.audioSrc;
+            audioElement.play().then(() => {
+                isPlaying = true;
+                updatePlayerBar();
+                renderSongs();
+                renderMostPlayed();
+            }).catch(() => {
+                showToast("Memutar audio.");
+                isPlaying = true;
+                updatePlayerBar();
+            });
+        }
+
+        function togglePlay() {
+            if (songs.length === 0) {
+                showToast("Pustaka lagu kosong!");
+                return;
+            }
+            if (isPlaying) {
+                audioElement.pause();
+                isPlaying = false;
+            } else {
+                if (isRadioPlaying) {
+                    radioElement.pause();
+                    isRadioPlaying = false;
+                    updateRadioPlayButton();
+                }
+                if (!audioElement.src) {
+                    audioElement.src = songs[currentSongIndex].audioSrc;
+                }
+                audioElement.play().catch(() => {});
+                isPlaying = true;
+            }
+            updatePlayerBar();
+            renderSongs();
+        }
+
+        function nextSong() {
+            if (songs.length === 0) return;
+            currentSongIndex = (currentSongIndex + 1) % songs.length;
+            selectAndPlaySong(currentSongIndex);
+        }
+
+        function prevSong() {
+            if (songs.length === 0) return;
+            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            selectAndPlaySong(currentSongIndex);
+        }
+
+        function updatePlayerBar() {
+            if (songs.length === 0) {
+                document.getElementById('playerSongTitle').innerText = "Belum ada lagu";
+                document.getElementById('playerArtist').innerText = "Pilih atau unduh musik";
+                document.getElementById('totalDuration').innerText = "00:00";
+                return;
+            }
+            const song = songs[currentSongIndex];
+            document.getElementById('playerSongTitle').innerText = song.title;
+            document.getElementById('playerArtist').innerText = song.artist;
+            document.getElementById('totalDuration').innerText = song.duration;
+            
+            const mainIcon = document.getElementById('mainPlayIcon');
+            mainIcon.className = isPlaying ? "fa-solid fa-pause text-sm" : "fa-solid fa-play text-sm ml-0.5";
+
+            const likeBtn = document.getElementById('playerLikeBtn');
+            likeBtn.innerHTML = `<i class="fa-${song.liked ? 'solid text-pink-500' : 'regular'} fa-heart text-base"></i>`;
+        }
+
+        function seekAudio(val) {
+            if (audioElement.duration) {
+                audioElement.currentTime = (val / 100) * audioElement.duration;
+            }
+        }
+
+        function toggleLike(id) {
+            const song = songs.find(s => s.id === id);
+            if (song) {
+                song.liked = !song.liked;
+                saveSongsToStorage();
+                renderSongs();
+                renderMostPlayed();
+                updatePlayerBar();
+                showToast(song.liked ? "Ditambahkan ke Favorit" : "Dihapus dari Favorit");
+            }
+        }
+
+        function toggleLikeCurrent() {
+            if (songs[currentSongIndex]) {
+                toggleLike(songs[currentSongIndex].id);
+            }
+        }
+
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            const btn = document.getElementById('shuffleBtn');
+            if (isShuffle) {
+                btn.classList.add('text-pink-400', 'border-pink-500');
+                showToast("Mode Acak Aktif");
+            } else {
+                btn.classList.remove('text-pink-400', 'border-pink-500');
+                showToast("Mode Acak Nonaktif");
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            const pillSemua = document.getElementById('pill-semua');
+            const pillFavorit = document.getElementById('pill-favorit');
+
+            if (filter === 'semua') {
+                pillSemua.className = "px-5 py-2 rounded-full text-sm font-medium theme-gradient text-white shadow-lg whitespace-nowrap transition";
+                pillFavorit.className = "px-5 py-2 rounded-full text-sm font-medium bg-[#160d26] border border-purple-900/50 text-purple-300 hover:text-white whitespace-nowrap transition";
+            } else {
+                pillFavorit.className = "px-5 py-2 rounded-full text-sm font-medium theme-gradient text-white shadow-lg whitespace-nowrap transition";
+                pillSemua.className = "px-5 py-2 rounded-full text-sm font-medium bg-[#160d26] border border-purple-900/50 text-purple-300 hover:text-white whitespace-nowrap transition";
+            }
+            renderSongs();
+        }
+
+        function filterSongs() { renderSongs(); }
+
+        function sortSongs(criteria) {
+            if (criteria === 'title') {
+                songs.sort((a, b) => a.title.localeCompare(b.title));
+                showToast("Diurutkan berdasarkan Judul");
+            } else if (criteria === 'duration') {
+                songs.sort((a, b) => a.durationSec - b.durationSec);
+                showToast("Diurutkan berdasarkan Durasi");
+            }
+            renderSongs();
+        }
+
+        function playAll() {
+            if (songs.length > 0) {
+                selectAndPlaySong(0);
+                showToast("Memutar semua daftar lagu");
+            }
+        }
+
+        // YouTube Importer & Backend Proxy Integration
+        function openYoutubeModal() { document.getElementById('youtubeModal').classList.remove('hidden'); }
+        function closeYoutubeModal() { document.getElementById('youtubeModal').classList.add('hidden'); }
+
+        function extractYouTubeID(url) {
+            let match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        async function processYoutubeDownload() {
+            const url = document.getElementById('youtubeUrlInput').value.trim();
+            const statusEl = document.getElementById('downloadStatus');
+
+            if (!url) {
+                showToast("Harap masukkan URL YouTube yang valid!");
+                return;
+            }
+
+            const videoId = extractYouTubeID(url);
+            if (!videoId) {
+                showToast("Format Link YouTube tidak dikenali!");
+                return;
+            }
+
+            statusEl.classList.remove('hidden');
+            statusEl.innerText = "Mengambil info & menghubungi server backend...";
+
+            try {
+                let songTitle = "YouTube Audio";
+                let songAuthor = "YouTube Stream";
+                try {
+                    const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+                    if (oembedRes.ok) {
+                        const oembedData = await oembedRes.json();
+                        if (oembedData.title) songTitle = oembedData.title;
+                        if (oembedData.author_name) songAuthor = oembedData.author_name;
+                    }
+                } catch(e) {
+                    console.log("Gagal ambil oembed title:", e);
+                }
+
+                // Menembak Backend Mandiri Railway Abang
+                const apiResponse = await fetch(`https://nf-music-server-production.up.railway.app/download?id=${videoId}`);
+                const data = await apiResponse.json();
+
+                if (data.success && (data.link || data.url)) {
+                    const downloadUrl = data.link || data.url;
+                    
+                    const newSong = {
+                        id: Date.now(),
+                        title: songTitle,
+                        artist: songAuthor,
+                        duration: data.duration ? formatTime(data.duration) : "03:45",
+                        durationSec: data.duration || 225,
+                        plays: 1,
+                        liked: true,
+                        audioSrc: downloadUrl
+                    };
+
+                    songs.unshift(newSong);
+                    saveSongsToStorage();
+                    statusEl.classList.add('hidden');
+                    closeYoutubeModal();
+                    renderSongs();
+                    renderMostPlayed();
+                    renderPlaylists();
+                    showToast("Lagu berhasil disimpan permanen!");
+                    document.getElementById('youtubeUrlInput').value = "";
+                    selectAndPlaySong(0);
+                } else {
+                    statusEl.innerText = "Gagal memproses audio dari server. Coba link lain.";
+                    setTimeout(() => statusEl.classList.add('hidden'), 3000);
+                }
+            } catch (err) {
+                console.error(err);
+                statusEl.innerText = "Terjadi kesalahan koneksi ke server backend.";
+                setTimeout(() => statusEl.classList.add('hidden'), 3000);
+            }
+        }
+
+        // Multi-Select Import Semua File Perangkat Sekaligus
+        function handleLocalFiles(event) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const blobUrl = URL.createObjectURL(file);
+                    const newSong = {
+                        id: Date.now() + i,
+                        title: file.name.replace(/\.[^/.]+$/, ""),
+                        artist: "Local Storage",
+                        duration: "03:30",
+                        durationSec: 210,
+                        plays: 1,
+                        liked: false,
+                        audioSrc: blobUrl
+                    };
+                    songs.unshift(newSong);
+                }
+                saveSongsToStorage();
+                renderSongs();
+                renderMostPlayed();
+                renderPlaylists();
+                showToast(`Berhasil mengimpor ${files.length} file musik sekaligus!`);
+            }
+        }
+
+        function refreshLibrary() {
+            renderSongs();
+            renderPlaylists();
+            renderMostPlayed();
+            showToast("Pustaka musik berhasil disegarkan.");
+        }
+
+        // Radio FM Functions (Fixed Audio Streaming)
+        function playRadioStation(index) {
+            if (isPlaying) {
+                audioElement.pause();
+                isPlaying = false;
+                updatePlayerBar();
+            }
+
+            activeRadioIndex = index;
+            const station = radioStations[index];
+            document.getElementById('currentRadioName').innerText = station.name;
+            document.getElementById('currentRadioGenre').innerText = station.genre;
+            document.getElementById('radioIcon').className = `fa-solid ${station.icon} text-3xl`;
+
+            radioElement.src = station.url;
+            radioElement.load();
+            radioElement.play().then(() => {
+                isRadioPlaying = true;
+                updateRadioPlayButton();
+                renderRadioStations();
+                showToast(`Memutar: ${station.name}`);
+            }).catch((err) => {
+                console.error(err);
+                isRadioPlaying = true;
+                updateRadioPlayButton();
+                renderRadioStations();
+                showToast(`Streaming live: ${station.name}`);
+            });
+        }
+
+        function toggleRadioPlay() {
+            if (activeRadioIndex === null) {
+                playRadioStation(0);
+                return;
+            }
+            if (isRadioPlaying) {
+                radioElement.pause();
+                isRadioPlaying = false;
+            } else {
+                if (isPlaying) {
+                    audioElement.pause();
+                    isPlaying = false;
+                    updatePlayerBar();
+                }
+                radioElement.play().catch(() => {});
+                isRadioPlaying = true;
+            }
+            updateRadioPlayButton();
+            renderRadioStations();
+        }
+
+        function updateRadioPlayButton() {
+            const icon = document.getElementById('radioPlayIcon');
+            icon.className = isRadioPlaying ? "fa-solid fa-pause text-xl" : "fa-solid fa-play text-xl ml-0.5";
+        }
+
+        function nextRadio() {
+            if (activeRadioIndex === null) playRadioStation(0);
+            else playRadioStation((activeRadioIndex + 1) % radioStations.length);
+        }
+
+        function prevRadio() {
+            if (activeRadioIndex === null) playRadioStation(0);
+            else playRadioStation((activeRadioIndex - 1 + radioStations.length) % radioStations.length);
+        }
+
+        function setRadioVolume(val) {
+            radioElement.volume = val;
+            audioElement.volume = val;
+        }
+
+        // Fungsi Tema Dinamis
+        function setThemeAccent(theme) {
+            const body = document.getElementById('appBody');
+            
+            ['pink', 'emerald', 'gold'].forEach(t => {
+                const card = document.getElementById(`theme-${t}`);
+                const check = card.querySelector('.fa-circle-check');
+                if (t === theme) {
+                    check.classList.remove('opacity-0');
+                } else {
+                    check.classList.add('opacity-0');
+                }
+            });
+
+            if (theme === 'pink') {
+                body.style.setProperty('--bg-main', '#0b0614');
+                body.style.setProperty('--bg-card', 'rgba(22, 13, 38, 0.85)');
+                body.style.setProperty('--border-color', 'rgba(236, 72, 153, 0.15)');
+                body.style.setProperty('--glow-color', 'rgba(236, 72, 153, 0.25)');
+                body.style.setProperty('--gradient-main', 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)');
+                showToast("Tema diubah ke: Dark Neon");
+            } else if (theme === 'emerald') {
+                body.style.setProperty('--bg-main', '#041511');
+                body.style.setProperty('--bg-card', 'rgba(8, 30, 24, 0.85)');
+                body.style.setProperty('--border-color', 'rgba(16, 185, 129, 0.2)');
+                body.style.setProperty('--glow-color', 'rgba(16, 185, 129, 0.3)');
+                body.style.setProperty('--gradient-main', 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)');
+                showToast("Tema diubah ke: Emerald Forest");
+            } else if (theme === 'gold') {
+                body.style.setProperty('--bg-main', '#171207');
+                body.style.setProperty('--bg-card', 'rgba(33, 25, 10, 0.85)');
+                body.style.setProperty('--border-color', 'rgba(245, 158, 11, 0.2)');
+                body.style.setProperty('--glow-color', 'rgba(245, 158, 11, 0.3)');
+                body.style.setProperty('--gradient-main', 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)');
+                showToast("Tema diubah ke: Retro Gold");
+            }
+        }
+
+        function openCreatePlaylistModal() { document.getElementById('playlistModal').classList.remove('hidden'); }
+        function closeCreatePlaylistModal() { document.getElementById('playlistModal').classList.add('hidden'); }
+        function saveNewPlaylist() {
+            const name = document.getElementById('newPlaylistName').value.trim();
+            if (!name) {
+                showToast("Nama playlist tidak boleh kosong!");
+                return;
+            }
+            playlists.push({ id: Date.now(), name: name, count: 0, imageIcon: "fa-compact-disc" });
+            closeCreatePlaylistModal();
+            renderPlaylists();
+            showToast(`Playlist "${name}" berhasil dibuat!`);
+            document.getElementById('newPlaylistName').value = "";
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
