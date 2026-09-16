@@ -281,7 +281,7 @@
                 <h3 class="text-sm font-semibold text-white">Informasi Sistem</h3>
                 <div class="text-xs text-purple-300 space-y-1">
                     <p><strong>Nama Aplikasi:</strong> NF Musik Player Pro</p>
-                    <p><strong>Versi:</strong> 3.8.0 (CORS Proxy Radio Ready)</p>
+                    <p><strong>Versi:</strong> 3.8.1 (Direct Stream Ready)</p>
                 </div>
             </div>
         </div>
@@ -401,17 +401,17 @@
             { id: 2, name: "Santai Sore", count: 0, imageIcon: "fa-mug-hot" }
         ];
 
-        // Daftar Stasiun Radio dengan CORS Proxy Bypass
+        // Daftar Stasiun Radio dengan CORS Proxy Bypass dihapus
         let radioStations = [
-            { id: 1, name: "RRI Pro 3 Nasional", genre: "Berita & Musik Indonesia 24 Jam", url: "https://corsproxy.io/?https://stream-mz.rri.co.id/pro3", icon: "fa-tower-broadcast" },
-            { id: 2, name: "RRI Pro 1 Jakarta", genre: "Informasi & Musik Tradisional", url: "https://corsproxy.io/?https://stream-mz.rri.co.id/pro1_jkt", icon: "fa-microphone-lines" },
-            { id: 3, name: "Radio Elshinta Jakarta", genre: "Berita Terkini & Talkshow", url: "https://corsproxy.io/?https://vokal.elshinta.co.id/stream", icon: "fa-newspaper" },
-            { id: 4, name: "Radio Rodja Bogor", genre: "Kajian Islam & Religi", url: "https://corsproxy.io/?https://live.radiorodja.com/stream.mp3", icon: "fa-book-quran" },
-            { id: 5, name: "Prambors FM Jakarta", genre: "Hits Anak Muda & Musik Terbaru", url: "https://corsproxy.io/?https://icecast.umardham.org/prambors", icon: "fa-headphones" },
-            { id: 6, name: "Delta FM Jakarta", genre: "Lagu Enak 80an - Sekarang", url: "https://corsproxy.io/?https://radio.streamingindonesia.com/proxy/delta?mp=/stream", icon: "fa-radio" },
-            { id: 7, name: "I-Radio Jakarta", genre: "100% Musik Indonesia", url: "https://corsproxy.io/?https://icecast.umardham.org/iradio", icon: "fa-music" },
-            { id: 8, name: "Hard Rock FM Jakarta", genre: "Lifestyle & Classic Rock / Pop", url: "https://corsproxy.io/?https://icecast.umardham.org/hardrock", icon: "fa-guitar" },
-            { id: 9, name: "MRA Radio / Brava FM", genre: "Classic Hits & Jazz", url: "https://corsproxy.io/?https://icecast.umardham.org/brava", icon: "fa-compact-disc" }
+            { id: 1, name: "RRI Pro 3 Nasional", genre: "Berita & Musik Indonesia 24 Jam", url: "https://stream-mz.rri.co.id/pro3", icon: "fa-tower-broadcast" },
+            { id: 2, name: "RRI Pro 1 Jakarta", genre: "Informasi & Musik Tradisional", url: "https://stream-mz.rri.co.id/pro1_jkt", icon: "fa-microphone-lines" },
+            { id: 3, name: "Radio Elshinta Jakarta", genre: "Berita Terkini & Talkshow", url: "https://vokal.elshinta.co.id/stream", icon: "fa-newspaper" },
+            { id: 4, name: "Radio Rodja Bogor", genre: "Kajian Islam & Religi", url: "https://live.radiorodja.com/stream.mp3", icon: "fa-book-quran" },
+            { id: 5, name: "Prambors FM Jakarta", genre: "Hits Anak Muda & Musik Terbaru", url: "https://icecast.umardham.org/prambors", icon: "fa-headphones" },
+            { id: 6, name: "Delta FM Jakarta", genre: "Lagu Enak 80an - Sekarang", url: "https://radio.streamingindonesia.com/proxy/delta?mp=/stream", icon: "fa-radio" },
+            { id: 7, name: "I-Radio Jakarta", genre: "100% Musik Indonesia", url: "https://icecast.umardham.org/iradio", icon: "fa-music" },
+            { id: 8, name: "Hard Rock FM Jakarta", genre: "Lifestyle & Classic Rock / Pop", url: "https://icecast.umardham.org/hardrock", icon: "fa-guitar" },
+            { id: 9, name: "MRA Radio / Brava FM", genre: "Classic Hits & Jazz", url: "https://icecast.umardham.org/brava", icon: "fa-compact-disc" }
         ];
 
         let currentSongIndex = 0;
@@ -424,7 +424,8 @@
 
         const audioElement = new Audio();
         const radioElement = new Audio();
-        radioElement.crossOrigin = "anonymous";
+        // Aturan crossOrigin dinonaktifkan
+        // radioElement.crossOrigin = "anonymous";
 
         window.onload = function() {
             renderSongs();
