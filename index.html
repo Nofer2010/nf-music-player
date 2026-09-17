@@ -40,7 +40,7 @@
             letter-spacing: 0.5px;
         }
         ::-webkit-scrollbar {
-            width: 4px;
+            width: 6px;
         }
         ::-webkit-scrollbar-track {
             background: transparent;
@@ -72,345 +72,497 @@
         .radio-pulse {
             animation: pulse-ring 3s infinite ease-in-out;
         }
+        
+        /* Tambahan CSS untuk Tampilan Desktop/Tablet */
+        @media (min-width: 768px) {
+            .app-container {
+                display: flex;
+                flex-direction: row;
+                height: 100vh;
+                overflow: hidden;
+            }
+            .sidebar-nav {
+                width: 250px;
+                flex-shrink: 0;
+                height: 100%;
+                border-right: 1px solid var(--border-color, rgba(236, 72, 153, 0.15));
+                flex-direction: column;
+                justify-content: flex-start;
+                padding-top: 2rem;
+            }
+            .main-content {
+                flex-grow: 1;
+                overflow-y: auto;
+                height: 100%;
+                /* Padding bawah untuk desktop disesuaikan */
+                padding-bottom: 120px !important; 
+            }
+            .bottom-nav-mobile {
+                display: none !important;
+            }
+            .player-bar-desktop {
+                bottom: 0 !important;
+                max-width: 100% !important;
+                border-radius: 0 !important;
+                border-top: 1px solid var(--border-color, rgba(236, 72, 153, 0.15)) !important;
+                border-left: none !important;
+                border-right: none !important;
+                border-bottom: none !important;
+            }
+            .header-desktop {
+                position: relative;
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen pb-32 flex flex-col justify-between" id="appBody" style="--bg-main: #0b0614; --bg-card: rgba(22, 13, 38, 0.85); --border-color: rgba(236, 72, 153, 0.15); --glow-color: rgba(236, 72, 153, 0.25); --gradient-main: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);">
+<body class="min-h-screen flex flex-col md:flex-row md:overflow-hidden" id="appBody" style="--bg-main: #0b0614; --bg-card: rgba(22, 13, 38, 0.85); --border-color: rgba(236, 72, 153, 0.15); --glow-color: rgba(236, 72, 153, 0.25); --gradient-main: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);">
 
-    <!-- Top Header -->
-    <header class="sticky top-0 z-40 glass-panel px-4 py-3 flex items-center justify-between border-b border-purple-900/40">
-        <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 rounded-xl overflow-hidden neon-glow flex items-center justify-center border border-pink-500/40">
+    <!-- Sidebar Navigation (Desktop/Tablet) -->
+    <nav class="hidden md:flex sidebar-nav glass-panel z-40 space-y-4 px-4">
+        <div class="flex items-center space-x-3 mb-8 px-2">
+            <div class="w-10 h-10 rounded-xl overflow-hidden neon-glow flex items-center justify-center border border-pink-500/40">
                 <img src="252911.png" alt="NF Music Logo" class="w-full h-full object-cover">
             </div>
-            <h1 class="text-2xl font-bold cursive-title bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-                NF Musik Player
+            <h1 class="text-2xl font-bold cursive-title bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent truncate">
+                NF Musik
             </h1>
         </div>
-        <div class="flex items-center space-x-2">
-            <button onclick="openYoutubeModal()" title="Import dari YouTube" class="w-9 h-9 rounded-xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-pink-400 hover:bg-purple-900/60 transition">
-                <i class="fa-solid fa-cloud-arrow-down text-sm"></i>
-            </button>
-            <label title="Muat Semua File MP3 Perangkat" class="w-9 h-9 rounded-xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-pink-400 hover:bg-purple-900/60 transition cursor-pointer">
-                <i class="fa-solid fa-folder-open text-sm"></i>
-                <input type="file" id="localFileInput" accept="audio/*" multiple class="hidden" onchange="handleLocalFiles(event)">
-            </label>
-            <button onclick="refreshLibrary()" title="Segarkan" class="w-9 h-9 rounded-xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-pink-400 hover:bg-purple-900/60 transition">
-                <i class="fa-solid fa-rotate-right text-sm"></i>
-            </button>
-        </div>
-    </header>
+        
+        <button onclick="switchTab('beranda')" id="nav-desktop-beranda" class="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-pink-400 hover:bg-purple-900/30 transition text-left">
+            <i class="fa-solid fa-house w-6 text-center"></i>
+            <span class="font-medium">Beranda</span>
+        </button>
+        <button onclick="switchTab('playlist')" id="nav-desktop-playlist" class="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-purple-300 hover:text-pink-400 hover:bg-purple-900/30 transition text-left">
+            <i class="fa-solid fa-music w-6 text-center"></i>
+            <span class="font-medium">Playlist</span>
+        </button>
+        <button onclick="switchTab('sering')" id="nav-desktop-sering" class="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-purple-300 hover:text-pink-400 hover:bg-purple-900/30 transition text-left">
+            <i class="fa-solid fa-fire w-6 text-center"></i>
+            <span class="font-medium">Sering Diputar</span>
+        </button>
+        <button onclick="switchTab('radio')" id="nav-desktop-radio" class="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-purple-300 hover:text-pink-400 hover:bg-purple-900/30 transition text-left">
+            <i class="fa-solid fa-tower-broadcast w-6 text-center"></i>
+            <span class="font-medium">Radio FM</span>
+        </button>
+        <button onclick="switchTab('tema')" id="nav-desktop-tema" class="flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-purple-300 hover:text-pink-400 hover:bg-purple-900/30 transition text-left">
+            <i class="fa-solid fa-palette w-6 text-center"></i>
+            <span class="font-medium">Tema & Info</span>
+        </button>
+    </nav>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 max-w-md w-full mx-auto px-4 pt-4">
-
-        <!-- TAB 1: BERANDA -->
-        <div id="view-beranda" class="space-y-6">
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-pink-400">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </span>
-                <input type="text" id="searchInput" oninput="filterSongs()" placeholder="Cari lagu, artis, atau album..." 
-                    class="w-full pl-11 pr-4 py-3 bg-[#160d26] border border-purple-900/50 rounded-2xl text-sm focus:outline-none focus:border-pink-500 text-white placeholder-purple-400/60 shadow-inner">
-            </div>
-
-            <div class="flex space-x-3 overflow-x-auto pb-1 scrollbar-none">
-                <button onclick="setFilter('semua')" id="pill-semua" class="px-5 py-2 rounded-full text-sm font-medium theme-gradient text-white shadow-lg whitespace-nowrap transition">
-                    Semua Lagu <span id="count-semua" class="ml-1 text-xs bg-black/20 px-1.5 py-0.5 rounded-full">0</span>
-                </button>
-                <button onclick="setFilter('favorit')" id="pill-favorit" class="px-5 py-2 rounded-full text-sm font-medium bg-[#160d26] border border-purple-900/50 text-purple-300 hover:text-white whitespace-nowrap transition">
-                    Favorit <span id="count-favorit" class="ml-1 text-xs bg-purple-900/50 px-1.5 py-0.5 rounded-full">0</span>
-                </button>
-            </div>
-
-            <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold cursive-title flex items-center text-pink-300">
-                        <i class="fa-solid fa-music mr-2 text-sm"></i> Playlist Populer
-                    </h2>
-                    <span class="text-xs text-purple-400 font-medium">Top <span id="playlist-count">2</span></span>
+    <!-- Content Area (Scrollable) -->
+    <div class="flex-1 flex flex-col md:h-screen w-full relative">
+        
+        <!-- Top Header (Mobile & Desktop) -->
+        <header class="sticky top-0 z-40 glass-panel px-4 py-3 flex items-center justify-between border-b border-purple-900/40 md:px-8">
+            <div class="flex items-center space-x-3 md:hidden">
+                <div class="w-9 h-9 rounded-xl overflow-hidden neon-glow flex items-center justify-center border border-pink-500/40">
+                    <img src="252911.png" alt="NF Music Logo" class="w-full h-full object-cover">
                 </div>
-                <div class="grid grid-cols-2 gap-3" id="popularPlaylistsContainer"></div>
+                <h1 class="text-xl font-bold cursive-title bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+                    NF Musik Player
+                </h1>
             </div>
-
-            <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold cursive-title text-pink-300">
-                        Daftar Lagu (<span id="song-list-count">0</span>)
-                    </h2>
-                    <div class="flex items-center space-x-2 text-purple-400 text-xs">
-                        <button onclick="sortSongs('title')" class="p-1.5 bg-[#160d26] rounded-lg border border-purple-900/40 hover:text-pink-300" title="Urutkan Judul"><i class="fa-solid fa-arrow-down-a-z"></i></button>
-                        <button onclick="sortSongs('duration')" class="p-1.5 bg-[#160d26] rounded-lg border border-purple-900/40 hover:text-pink-300" title="Urutkan Durasi"><i class="fa-solid fa-clock"></i></button>
-                        <button onclick="toggleShuffle()" id="shuffleBtn" class="p-1.5 bg-[#160d26] rounded-lg border border-purple-900/40 hover:text-pink-300" title="Acak"><i class="fa-solid fa-shuffle"></i></button>
-                        <button onclick="playAll()" class="w-8 h-8 rounded-full theme-gradient text-white flex items-center justify-center shadow-md"><i class="fa-solid fa-play text-xs ml-0.5"></i></button>
-                    </div>
+            
+            <div class="hidden md:block w-full max-w-md">
+                 <!-- Search bar for desktop header -->
+                 <div class="relative w-full">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-pink-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="searchInputDesktop" oninput="document.getElementById('searchInput').value=this.value; filterSongs(); switchTab('beranda');" placeholder="Cari lagu, artis..." 
+                        class="w-full pl-11 pr-4 py-2 bg-[#160d26] border border-purple-900/50 rounded-xl text-sm focus:outline-none focus:border-pink-500 text-white placeholder-purple-400/60 shadow-inner">
                 </div>
-                <div class="space-y-2.5" id="songsContainer"></div>
             </div>
-        </div>
 
-        <!-- TAB 2: PLAYLIST -->
-        <div id="view-playlist" class="space-y-4 hidden">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold cursive-title text-pink-400 flex items-center">
-                    <i class="fa-solid fa-list-ul mr-2 text-lg"></i> Daftar Playlist
-                </h2>
-                <button onclick="openCreatePlaylistModal()" class="w-9 h-9 rounded-xl theme-gradient flex items-center justify-center text-white shadow-md">
-                    <i class="fa-solid fa-plus text-sm"></i>
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <button onclick="openYoutubeModal()" title="Import dari YouTube" class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-pink-400 hover:bg-purple-900/60 transition">
+                    <i class="fa-solid fa-cloud-arrow-down text-sm md:text-base"></i>
+                </button>
+                <label title="Muat Semua File MP3 Perangkat" class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-pink-400 hover:bg-purple-900/60 transition cursor-pointer">
+                    <i class="fa-solid fa-folder-open text-sm md:text-base"></i>
+                    <input type="file" id="localFileInput" accept="audio/*" multiple class="hidden" onchange="handleLocalFiles(event)">
+                </label>
+                <button onclick="refreshLibrary()" title="Segarkan" class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-pink-400 hover:bg-purple-900/60 transition">
+                    <i class="fa-solid fa-rotate-right text-sm md:text-base"></i>
                 </button>
             </div>
-            <div class="grid grid-cols-2 gap-3" id="fullPlaylistContainer"></div>
-        </div>
+        </header>
 
-        <!-- TAB 3: SERING DIPUTAR -->
-        <div id="view-sering" class="space-y-4 hidden">
-            <div class="flex items-center space-x-2">
-                <span class="text-red-500 text-xl animate-pulse"><i class="fa-solid fa-fire"></i></span>
-                <h2 class="text-2xl font-bold cursive-title text-pink-400">Paling Sering Diputar</h2>
-            </div>
-            <p class="text-xs text-purple-300/70">Lagu yang paling sering Anda dengarkan dalam sesi ini.</p>
-            <div class="space-y-2.5" id="mostPlayedContainer"></div>
-        </div>
+        <!-- Main Content Area: Padding bottom ditingkatkan menjadi pb-48 (12rem) untuk mobile agar tidak tertutup player -->
+        <main class="main-content w-full md:max-w-4xl md:mx-auto px-4 pt-4 pb-48">
 
-        <!-- TAB 4: RADIO FM INDONESIA -->
-        <div id="view-radio" class="space-y-5 hidden">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold cursive-title text-pink-400 flex items-center">
-                    <i class="fa-solid fa-tower-broadcast mr-2 text-lg"></i> Radio FM Indonesia
-                </h2>
-                <span class="px-2.5 py-1 bg-red-500/20 text-red-400 border border-red-500/40 rounded-full text-xs font-semibold animate-pulse">LIVE</span>
-            </div>
-
-            <div class="glass-panel p-6 rounded-3xl text-center relative overflow-hidden shadow-xl border border-purple-500/30">
-                <div class="absolute -right-10 -top-10 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl"></div>
-                <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl"></div>
-                
-                <div class="relative w-28 h-28 mx-auto mb-4 flex items-center justify-center">
-                    <div class="absolute inset-0 rounded-full border border-pink-500/30 radio-pulse"></div>
-                    <div class="w-24 h-24 rounded-full theme-gradient flex items-center justify-center text-white shadow-lg">
-                        <i id="radioIcon" class="fa-solid fa-broadcast-tower text-3xl"></i>
-                    </div>
+            <!-- TAB 1: BERANDA -->
+            <div id="view-beranda" class="space-y-6 md:space-y-8">
+                <!-- Search for Mobile only -->
+                <div class="relative md:hidden">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-pink-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="document.getElementById('searchInputDesktop').value=this.value; filterSongs();" placeholder="Cari lagu, artis, atau album..." 
+                        class="w-full pl-11 pr-4 py-3 bg-[#160d26] border border-purple-900/50 rounded-2xl text-sm focus:outline-none focus:border-pink-500 text-white placeholder-purple-400/60 shadow-inner">
                 </div>
 
-                <h3 id="currentRadioName" class="text-lg font-bold text-white mb-1">Pilih Stasiun Radio</h3>
-                <p id="currentRadioGenre" class="text-xs text-pink-400 mb-4">Siap untuk streaming langsung</p>
-
-                <div class="flex items-center justify-center space-x-6 mb-4">
-                    <button onclick="prevRadio()" class="w-10 h-10 rounded-full bg-purple-900/40 border border-purple-700/50 flex items-center justify-center text-pink-300 hover:scale-105 transition"><i class="fa-solid fa-backward-step"></i></button>
-                    <button onclick="toggleRadioPlay()" id="radioPlayBtn" class="w-14 h-14 rounded-full theme-gradient flex items-center justify-center text-white shadow-lg hover:scale-105 transition">
-                        <i class="fa-solid fa-play text-xl ml-0.5" id="radioPlayIcon"></i>
+                <div class="flex space-x-3 overflow-x-auto pb-1 scrollbar-none md:justify-center">
+                    <button onclick="setFilter('semua')" id="pill-semua" class="px-5 py-2 md:px-8 md:py-2.5 rounded-full text-sm font-medium theme-gradient text-white shadow-lg whitespace-nowrap transition">
+                        Semua Lagu <span id="count-semua" class="ml-1 text-xs bg-black/20 px-1.5 py-0.5 rounded-full">0</span>
                     </button>
-                    <button onclick="nextRadio()" class="w-10 h-10 rounded-full bg-purple-900/40 border border-purple-700/50 flex items-center justify-center text-pink-300 hover:scale-105 transition"><i class="fa-solid fa-forward-step"></i></button>
+                    <button onclick="setFilter('favorit')" id="pill-favorit" class="px-5 py-2 md:px-8 md:py-2.5 rounded-full text-sm font-medium bg-[#160d26] border border-purple-900/50 text-purple-300 hover:text-white whitespace-nowrap transition">
+                        Favorit <span id="count-favorit" class="ml-1 text-xs bg-purple-900/50 px-1.5 py-0.5 rounded-full">0</span>
+                    </button>
                 </div>
 
-                <div class="flex items-center space-x-3 px-4">
-                    <i class="fa-solid fa-volume-low text-purple-400 text-xs"></i>
-                    <input type="range" min="0" max="1" step="0.05" value="0.8" onchange="setRadioVolume(this.value)" class="w-full accent-pink-500 cursor-pointer">
-                    <i class="fa-solid fa-volume-high text-purple-400 text-xs"></i>
+                <div class="space-y-3 md:space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg md:text-xl font-semibold cursive-title flex items-center text-pink-300">
+                            <i class="fa-solid fa-music mr-2 text-sm md:text-base"></i> Playlist Populer
+                        </h2>
+                        <span class="text-xs text-purple-400 font-medium">Top <span id="playlist-count">2</span></span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4" id="popularPlaylistsContainer"></div>
                 </div>
-            </div>
 
-            <div class="space-y-2">
-                <h3 class="text-sm font-semibold text-purple-300">Daftar Saluran Radio FM Indonesia</h3>
-                <div class="space-y-2" id="radioStationsList"></div>
-            </div>
-        </div>
-
-        <!-- TAB 5: TEMA & TENTANG PEMBUAT -->
-        <div id="view-tema" class="space-y-5 hidden">
-            <h2 class="text-2xl font-bold cursive-title text-pink-400 flex items-center">
-                <i class="fa-solid fa-palette mr-2 text-lg"></i> Tema & Tampilan
-            </h2>
-            <p class="text-xs text-purple-300/70">Sesuaikan warna dan suasana pemutar musik NF Anda.</p>
-            
-            <div class="space-y-3">
-                <div onclick="setThemeAccent('pink')" id="theme-pink" class="glass-panel p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-pink-500/40 hover:bg-purple-950/40 transition">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-purple-500"></div>
-                        <div>
-                            <h4 class="font-semibold text-sm text-white">Dark Neon (Default)</h4>
-                            <p class="text-xs text-purple-300">Nuansa gelap dengan aksen pink magenta menyala.</p>
+                <div class="space-y-3 md:space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg md:text-xl font-semibold cursive-title text-pink-300">
+                            Daftar Lagu (<span id="song-list-count">0</span>)
+                        </h2>
+                        <div class="flex items-center space-x-2 text-purple-400 text-xs md:text-sm">
+                            <button onclick="sortSongs('title')" class="p-1.5 md:p-2 bg-[#160d26] rounded-lg border border-purple-900/40 hover:text-pink-300 transition" title="Urutkan Judul"><i class="fa-solid fa-arrow-down-a-z"></i></button>
+                            <button onclick="sortSongs('duration')" class="p-1.5 md:p-2 bg-[#160d26] rounded-lg border border-purple-900/40 hover:text-pink-300 transition" title="Urutkan Durasi"><i class="fa-solid fa-clock"></i></button>
+                            <button onclick="toggleShuffle()" id="shuffleBtn" class="p-1.5 md:p-2 bg-[#160d26] rounded-lg border border-purple-900/40 hover:text-pink-300 transition" title="Acak"><i class="fa-solid fa-shuffle"></i></button>
+                            <button onclick="playAll()" class="w-8 h-8 md:w-9 md:h-9 rounded-full theme-gradient text-white flex items-center justify-center shadow-md hover:scale-105 transition"><i class="fa-solid fa-play text-xs md:text-sm ml-0.5"></i></button>
                         </div>
                     </div>
-                    <i class="fa-solid fa-circle-check text-pink-400 text-lg theme-check-pink"></i>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-4" id="songsContainer"></div>
+                </div>
+            </div>
+
+            <!-- TAB 2: PLAYLIST -->
+            <div id="view-playlist" class="space-y-4 md:space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl md:text-3xl font-bold cursive-title text-pink-400 flex items-center">
+                        <i class="fa-solid fa-list-ul mr-2 text-lg md:text-xl"></i> Daftar Playlist
+                    </h2>
+                    <button onclick="openCreatePlaylistModal()" class="px-4 py-2 rounded-xl theme-gradient flex items-center justify-center text-white shadow-md text-sm font-medium hover:scale-105 transition">
+                        <i class="fa-solid fa-plus mr-2 text-sm"></i> Buat Baru
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5" id="fullPlaylistContainer"></div>
+            </div>
+
+            <!-- TAB 2.1: DETAIL PLAYLIST -->
+            <div id="view-playlist-detail" class="space-y-4 md:space-y-6 hidden">
+                <div class="flex items-center space-x-4">
+                    <button onclick="switchTab('playlist')" class="w-10 h-10 rounded-full bg-purple-900/40 flex items-center justify-center text-pink-400 hover:bg-purple-900/60 transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h2 id="detailPlaylistTitle" class="text-2xl md:text-3xl font-bold cursive-title text-pink-400">Nama Playlist</h2>
+                        <p id="detailPlaylistInfo" class="text-xs md:text-sm text-purple-300">0 Lagu</p>
+                    </div>
+                </div>
+                <div class="space-y-2.5 md:space-y-4 pt-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-4" id="playlistSongsContainer"></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: SERING DIPUTAR -->
+            <div id="view-sering" class="space-y-4 md:space-y-6 hidden">
+                <div class="flex items-center space-x-2">
+                    <span class="text-red-500 text-xl md:text-2xl animate-pulse"><i class="fa-solid fa-fire"></i></span>
+                    <h2 class="text-2xl md:text-3xl font-bold cursive-title text-pink-400">Paling Sering Diputar</h2>
+                </div>
+                <p class="text-xs md:text-sm text-purple-300/70">Lagu yang paling sering Anda dengarkan dalam sesi ini.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-4" id="mostPlayedContainer"></div>
+            </div>
+
+            <!-- TAB 4: RADIO FM INDONESIA -->
+            <div id="view-radio" class="space-y-5 md:space-y-8 hidden">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl md:text-3xl font-bold cursive-title text-pink-400 flex items-center">
+                        <i class="fa-solid fa-tower-broadcast mr-2 text-lg md:text-xl"></i> Radio FM Indonesia
+                    </h2>
+                    <span class="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/40 rounded-full text-xs font-semibold animate-pulse">LIVE</span>
                 </div>
 
-                <div onclick="setThemeAccent('emerald')" id="theme-emerald" class="glass-panel p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-purple-900/40 hover:bg-purple-950/40 transition">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-6 h-6 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600"></div>
-                        <div>
-                            <h4 class="font-semibold text-sm text-white">Emerald Forest</h4>
-                            <p class="text-xs text-purple-300">Nuansa hijau zamrud elegan ala alam.</p>
+                <div class="glass-panel p-6 md:p-10 md:max-w-2xl md:mx-auto rounded-3xl text-center relative overflow-hidden shadow-xl border border-purple-500/30">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 md:w-48 md:h-48 bg-pink-500/10 rounded-full blur-2xl"></div>
+                    <div class="absolute -left-10 -bottom-10 w-32 h-32 md:w-48 md:h-48 bg-purple-500/10 rounded-full blur-2xl"></div>
+                    
+                    <div class="relative w-28 h-28 md:w-40 md:h-40 mx-auto mb-6 flex items-center justify-center">
+                        <div class="absolute inset-0 rounded-full border border-pink-500/30 radio-pulse"></div>
+                        <div id="radioLogoContainer" class="w-24 h-24 md:w-32 md:h-32 rounded-full theme-gradient flex items-center justify-center text-white shadow-lg overflow-hidden">
+                            <i id="radioIcon" class="fa-solid fa-broadcast-tower text-3xl md:text-5xl"></i>
                         </div>
                     </div>
-                    <i class="fa-solid fa-circle-check text-emerald-400 text-lg opacity-0 theme-check-emerald"></i>
+
+                    <h3 id="currentRadioName" class="text-xl md:text-2xl font-bold text-white mb-2">Pilih Stasiun Radio</h3>
+                    <p id="currentRadioGenre" class="text-sm md:text-base text-pink-400 mb-6">Siap untuk streaming langsung</p>
+
+                    <div class="flex items-center justify-center space-x-6 md:space-x-10 mb-6">
+                        <button onclick="prevRadio()" class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-purple-900/40 border border-purple-700/50 flex items-center justify-center text-pink-300 hover:scale-105 transition"><i class="fa-solid fa-backward-step md:text-lg"></i></button>
+                        <button onclick="toggleRadioPlay()" id="radioPlayBtn" class="w-14 h-14 md:w-16 md:h-16 rounded-full theme-gradient flex items-center justify-center text-white shadow-lg hover:scale-105 transition">
+                            <i class="fa-solid fa-play text-xl md:text-2xl ml-0.5" id="radioPlayIcon"></i>
+                        </button>
+                        <button onclick="nextRadio()" class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-purple-900/40 border border-purple-700/50 flex items-center justify-center text-pink-300 hover:scale-105 transition"><i class="fa-solid fa-forward-step md:text-lg"></i></button>
+                    </div>
+
+                    <div class="flex items-center space-x-4 px-4 md:px-10 max-w-md mx-auto">
+                        <i class="fa-solid fa-volume-low text-purple-400 text-xs md:text-sm"></i>
+                        <input type="range" min="0" max="1" step="0.05" value="0.8" onchange="setRadioVolume(this.value)" class="w-full accent-pink-500 cursor-pointer">
+                        <i class="fa-solid fa-volume-high text-purple-400 text-xs md:text-sm"></i>
+                    </div>
                 </div>
 
-                <div onclick="setThemeAccent('gold')" id="theme-gold" class="glass-panel p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-purple-900/40 hover:bg-purple-950/40 transition">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-6 h-6 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600"></div>
-                        <div>
-                            <h4 class="font-semibold text-sm text-white">Retro Gold</h4>
-                            <p class="text-xs text-purple-300">Sentuhan warna emas mewah klasik.</p>
+                <div class="space-y-3 md:space-y-4">
+                    <h3 class="text-sm md:text-base font-semibold text-purple-300">Daftar Saluran Radio FM Indonesia</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4" id="radioStationsList"></div>
+                </div>
+            </div>
+
+            <!-- TAB 5: TEMA & TENTANG PEMBUAT -->
+            <div id="view-tema" class="space-y-6 md:space-y-8 hidden">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl md:text-3xl font-bold cursive-title text-pink-400 flex items-center">
+                        <i class="fa-solid fa-palette mr-2 text-lg md:text-xl"></i> Tema & Info
+                    </h2>
+                </div>
+                <p class="text-xs md:text-sm text-purple-300/70">Sesuaikan warna dan suasana pemutar musik NF Anda.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                    <div onclick="setThemeAccent('pink')" id="theme-pink" class="glass-panel p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-pink-500/40 hover:bg-purple-950/40 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex-shrink-0"></div>
+                            <div>
+                                <h4 class="font-semibold text-sm md:text-base text-white">Dark Neon (Default)</h4>
+                                <p class="text-xs text-purple-300 mt-1 md:hidden">Nuansa gelap dengan aksen pink magenta.</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-circle-check text-pink-400 text-xl theme-check-pink"></i>
+                    </div>
+
+                    <div onclick="setThemeAccent('emerald')" id="theme-emerald" class="glass-panel p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-purple-900/40 hover:bg-purple-950/40 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 flex-shrink-0"></div>
+                            <div>
+                                <h4 class="font-semibold text-sm md:text-base text-white">Emerald Forest</h4>
+                                <p class="text-xs text-purple-300 mt-1 md:hidden">Nuansa hijau zamrud elegan ala alam.</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-xl opacity-0 theme-check-emerald"></i>
+                    </div>
+
+                    <div onclick="setThemeAccent('gold')" id="theme-gold" class="glass-panel p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-purple-900/40 hover:bg-purple-950/40 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-yellow-600 flex-shrink-0"></div>
+                            <div>
+                                <h4 class="font-semibold text-sm md:text-base text-white">Retro Gold</h4>
+                                <p class="text-xs text-purple-300 mt-1 md:hidden">Sentuhan warna emas mewah klasik.</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-circle-check text-amber-400 text-xl opacity-0 theme-check-gold"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                    <!-- Tentang Pembuat (Fer Tech Media) -->
+                    <div class="space-y-3">
+                        <h3 class="text-sm md:text-base font-semibold text-pink-300 uppercase tracking-wider italic">| Tentang Pembuat</h3>
+                        <div class="glass-panel p-5 md:p-6 rounded-3xl flex items-center space-x-4 md:space-x-6 border border-purple-500/30 relative overflow-hidden h-full">
+                            <div class="w-16 h-16 md:w-24 md:h-24 rounded-full overflow-hidden shadow-lg flex-shrink-0 border border-pink-500/40">
+                                <img src="94867.jpg" alt="Foto Pembuat" class="w-full h-full object-cover">
+                            </div>
+                            <div class="space-y-1.5 md:space-y-2 text-xs md:text-sm text-purple-200 overflow-hidden">
+                                <h4 class="font-bold text-sm md:text-lg text-white flex items-center space-x-1 md:space-x-2">
+                                    <span>Fer Tech Media</span>
+                                    <i class="fa-solid fa-circle-check text-pink-400 text-xs md:text-sm"></i>
+                                </h4>
+                                <p class="text-pink-400 italic font-medium">Pengembang Aplikasi NF Musik</p>
+                                <p class="flex items-center"><i class="fa-brands fa-whatsapp w-5 text-center text-green-400 mr-1"></i> <a href="https://wa.me/6285719134016" target="_blank" class="text-purple-200 hover:text-pink-300 transition">085719134016</a></p>
+                                <p class="flex items-center"><i class="fa-solid fa-globe w-5 text-center text-blue-400 mr-1"></i> <a href="https://fer-tech.myr.id" target="_blank" class="text-purple-200 hover:text-pink-300 transition">Fer-tech.myr.id</a></p>
+                                <p class="flex items-center truncate"><i class="fa-solid fa-envelope w-5 text-center text-red-400 mr-1"></i> <a href="mailto:Ferdianocktavianto90@gmail.com" class="text-purple-200 hover:text-pink-300 transition">Ferdianocktavianto90@gmail.com</a></p>
+                            </div>
                         </div>
                     </div>
-                    <i class="fa-solid fa-circle-check text-amber-400 text-lg opacity-0 theme-check-gold"></i>
-                </div>
-            </div>
-
-            <!-- Tentang Pembuat (Fer Tech Media) -->
-            <div class="space-y-3 pt-2">
-                <h3 class="text-sm font-semibold text-pink-300 uppercase tracking-wider italic">| Tentang Pembuat</h3>
-                <div class="glass-panel p-5 rounded-3xl flex items-center space-x-4 border border-purple-500/30 relative overflow-hidden">
-                    <div class="w-16 h-16 rounded-full overflow-hidden shadow-lg flex-shrink-0 border border-pink-500/40">
-                        <img src="94867.jpg" alt="Foto Pembuat" class="w-full h-full object-cover">
-                    </div>
-                    <div class="space-y-1 text-xs text-purple-200 overflow-hidden">
-                        <h4 class="font-bold text-sm text-white flex items-center space-x-1">
-                            <span>Fer Tech Media</span>
-                            <i class="fa-solid fa-circle-check text-pink-400 text-xs"></i>
-                        </h4>
-                        <p class="text-pink-400 italic">Pengembang Aplikasi NF Musik Player</p>
-                        <p>WhatsApp: <a href="https://wa.me/6285719134016" target="_blank" class="text-pink-300 underline">085719134016</a></p>
-                        <p>Website: <a href="https://fer-tech.myr.id" target="_blank" class="text-pink-300 underline">Fer-tech.myr.id</a></p>
-                        <p>Email: <a href="mailto:Ferdianocktavianto90@gmail.com" class="text-pink-300 underline truncate block">Ferdianocktavianto90@gmail.com</a></p>
+                    
+                    <div class="space-y-3">
+                        <h3 class="text-sm md:text-base font-semibold text-pink-300 uppercase tracking-wider italic md:opacity-0 hidden md:block">| Info</h3>
+                        <div class="glass-panel p-5 md:p-6 rounded-3xl space-y-3 h-full border border-purple-900/40">
+                            <h3 class="text-sm md:text-base font-semibold text-white border-b border-purple-900/50 pb-2">Informasi Sistem</h3>
+                            <div class="text-xs md:text-sm text-purple-300 space-y-2 pt-1">
+                                <p class="flex justify-between"><span>Nama Aplikasi:</span> <strong class="text-white">NF Musik Player Pro</strong></p>
+                                <p class="flex justify-between"><span>Versi:</span> <strong class="text-white">4.1.0 (Web/Desktop/Mobile)</strong></p>
+                                <p class="flex justify-between"><span>Developer:</span> <strong class="text-white">Ferdian Ocktavianto</strong></p>
+                                <p class="flex justify-between"><span>Lisensi:</span> <strong class="text-white">Premium</strong></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="glass-panel p-4 rounded-2xl space-y-2">
-                <h3 class="text-sm font-semibold text-white">Informasi Sistem</h3>
-                <div class="text-xs text-purple-300 space-y-1">
-                    <p><strong>Nama Aplikasi:</strong> NF Musik Player Pro</p>
-                    <p><strong>Versi:</strong> 3.8.3 (Web Radio Aggregator)</p>
-                </div>
-            </div>
-        </div>
 
-    </main>
+        </main>
 
-    <!-- Bottom Audio Player Bar -->
-    <div id="playerBar" class="fixed bottom-16 left-0 right-0 z-30 max-w-md mx-auto px-4">
-        <div class="glass-panel rounded-2xl p-3 shadow-2xl border border-pink-500/20 flex flex-col space-y-2">
-            <div class="flex items-center space-x-2 text-xs text-purple-300">
-                <span id="currentTime">00:00</span>
-                <input type="range" id="progressBar" min="0" max="100" value="0" oninput="seekAudio(this.value)" class="w-full h-1 bg-purple-900/60 rounded-lg appearance-none cursor-pointer accent-pink-500">
-                <span id="totalDuration">00:00</span>
-            </div>
-
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3 overflow-hidden cursor-pointer">
-                    <div class="w-11 h-11 rounded-xl theme-gradient flex items-center justify-center flex-shrink-0 neon-glow">
-                        <i class="fa-solid fa-music text-white text-sm" id="playerThumbIcon"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <h4 id="playerSongTitle" class="text-sm font-semibold text-white truncate">Belum ada lagu</h4>
-                        <p id="playerArtist" class="text-xs text-pink-400 truncate">Pilih atau unduh musik</p>
-                    </div>
+        <!-- Bottom Audio Player Bar -->
+        <div id="playerBar" class="fixed bottom-16 md:bottom-0 left-0 right-0 z-50 px-4 md:px-0 w-full flex justify-center">
+            <div class="glass-panel rounded-2xl md:rounded-none p-3 md:p-4 shadow-2xl border border-pink-500/20 w-full max-w-md md:max-w-full flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 player-bar-desktop transition-all">
+                
+                <div class="flex items-center space-x-2 md:space-x-3 text-xs md:text-sm text-purple-300 md:order-2 md:flex-1 md:px-8">
+                    <span id="currentTime" class="w-10 text-right font-mono">00:00</span>
+                    <input type="range" id="progressBar" min="0" max="100" value="0" oninput="seekAudio(this.value)" class="w-full h-1 md:h-1.5 bg-purple-900/60 rounded-lg appearance-none cursor-pointer accent-pink-500 hover:accent-pink-400 transition-all">
+                    <span id="totalDuration" class="w-10 font-mono">00:00</span>
                 </div>
 
-                <div class="flex items-center space-x-3 text-white">
-                    <button onclick="toggleLikeCurrent()" class="text-purple-400 hover:text-pink-400 transition" id="playerLikeBtn">
+                <div class="flex items-center justify-between md:order-1 md:w-1/4 min-w-[200px]">
+                    <div class="flex items-center space-x-3 overflow-hidden cursor-pointer">
+                        <div class="w-11 h-11 md:w-14 md:h-14 rounded-xl theme-gradient flex items-center justify-center flex-shrink-0 neon-glow">
+                            <i class="fa-solid fa-music text-white text-sm md:text-lg" id="playerThumbIcon"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h4 id="playerSongTitle" class="text-sm md:text-base font-semibold text-white truncate max-w-[150px] md:max-w-[200px]">Belum ada lagu</h4>
+                            <p id="playerArtist" class="text-xs md:text-sm text-pink-400 truncate max-w-[150px] md:max-w-[200px]">Pilih musik</p>
+                        </div>
+                    </div>
+                    
+                    <button onclick="toggleLikeCurrent()" class="md:hidden text-purple-400 hover:text-pink-400 transition ml-2" id="playerLikeBtn">
                         <i class="fa-regular fa-heart text-base"></i>
                     </button>
-                    <button onclick="prevSong()" class="text-purple-300 hover:text-white transition p-1">
-                        <i class="fa-solid fa-backward-step text-base"></i>
+                </div>
+
+                <div class="flex items-center space-x-3 md:space-x-5 text-white justify-end md:order-3 md:w-1/4">
+                    <button onclick="toggleLikeCurrent()" class="hidden md:block text-purple-400 hover:text-pink-400 transition" id="playerLikeBtnDesktop">
+                        <i class="fa-regular fa-heart text-xl"></i>
                     </button>
-                    <button onclick="togglePlay()" class="w-10 h-10 rounded-full theme-gradient flex items-center justify-center text-white shadow-lg hover:scale-105 transition">
-                        <i class="fa-solid fa-play text-sm ml-0.5" id="mainPlayIcon"></i>
+                    
+                    <button onclick="prevSong()" class="text-purple-300 hover:text-white transition p-1">
+                        <i class="fa-solid fa-backward-step text-base md:text-xl"></i>
+                    </button>
+                    <button onclick="togglePlay()" class="w-10 h-10 md:w-12 md:h-12 rounded-full theme-gradient flex items-center justify-center text-white shadow-lg hover:scale-105 transition">
+                        <i class="fa-solid fa-play text-sm md:text-base ml-0.5" id="mainPlayIcon"></i>
                     </button>
                     <button onclick="nextSong()" class="text-purple-300 hover:text-white transition p-1">
-                        <i class="fa-solid fa-forward-step text-base"></i>
+                        <i class="fa-solid fa-forward-step text-base md:text-xl"></i>
                     </button>
+                    
+                    <div class="hidden md:flex items-center space-x-2 ml-4 w-24">
+                        <i class="fa-solid fa-volume-low text-purple-400 text-xs"></i>
+                        <input type="range" min="0" max="1" step="0.05" value="0.8" onchange="audioElement.volume=this.value; radioElement.volume=this.value;" class="w-full h-1 bg-purple-900/60 rounded-lg appearance-none cursor-pointer accent-pink-500">
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </div> 
 
-    <!-- Bottom Navigation Bar -->
-    <nav class="fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-purple-900/40 py-2.5 px-4 flex items-center justify-around">
-        <button onclick="switchTab('beranda')" id="nav-beranda" class="flex flex-col items-center text-pink-400 transition">
+    <!-- Bottom Navigation Bar (Mobile Only) -->
+    <nav class="bottom-nav-mobile fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-purple-900/40 py-2.5 px-4 flex items-center justify-around md:hidden">
+        <button onclick="switchTab('beranda')" id="nav-mobile-beranda" class="flex flex-col items-center text-pink-400 transition">
             <i class="fa-solid fa-house text-lg mb-1"></i>
             <span class="text-[10px] font-medium cursive-title text-base">Beranda</span>
         </button>
-        <button onclick="switchTab('playlist')" id="nav-playlist" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
+        <button onclick="switchTab('playlist')" id="nav-mobile-playlist" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
             <i class="fa-solid fa-music text-lg mb-1"></i>
             <span class="text-[10px] font-medium cursive-title text-base">Playlist</span>
         </button>
-        <button onclick="switchTab('sering')" id="nav-sering" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
+        <button onclick="switchTab('sering')" id="nav-mobile-sering" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
             <i class="fa-solid fa-fire text-lg mb-1"></i>
-            <span class="text-[10px] font-medium cursive-title text-base">Sering Diputar</span>
+            <span class="text-[10px] font-medium cursive-title text-base">Sering</span>
         </button>
-        <button onclick="switchTab('radio')" id="nav-radio" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
+        <button onclick="switchTab('radio')" id="nav-mobile-radio" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
             <i class="fa-solid fa-tower-broadcast text-lg mb-1"></i>
-            <span class="text-[10px] font-medium cursive-title text-base">Radio FM</span>
+            <span class="text-[10px] font-medium cursive-title text-base">Radio</span>
         </button>
-        <button onclick="switchTab('tema')" id="nav-tema" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
+        <button onclick="switchTab('tema')" id="nav-mobile-tema" class="flex flex-col items-center text-purple-400/70 hover:text-pink-400 transition">
             <i class="fa-solid fa-palette text-lg mb-1"></i>
             <span class="text-[10px] font-medium cursive-title text-base">Tema</span>
         </button>
     </nav>
 
-    <!-- YouTube Importer Modal -->
-    <div id="youtubeModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 space-y-4 border border-pink-500/30 relative">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold cursive-title text-pink-400 flex items-center">
-                    <i class="fa-brands fa-youtube mr-2 text-red-500"></i> Download Audio YouTube
-                </h3>
-                <button onclick="closeYoutubeModal()" class="text-purple-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <!-- Modal Pilih Playlist -->
+    <div id="addToPlaylistModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 space-y-4 border border-pink-500/30 shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-purple-900/50 pb-3">
+                <h3 class="text-lg font-bold cursive-title text-pink-400">Tambahkan ke Playlist</h3>
+                <button onclick="closeAddToPlaylistModal()" class="text-purple-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <p class="text-xs text-purple-300">Masukkan link YouTube / YouTube Music untuk mengunduh lagu kualitas tinggi langsung ke aplikasi.</p>
-            
-            <div class="space-y-3">
-                <input type="text" id="youtubeUrlInput" placeholder="https://youtu.be/..." class="w-full px-4 py-3 bg-[#0b0614] border border-purple-900/60 rounded-2xl text-xs text-white placeholder-purple-400/50 focus:outline-none focus:border-pink-500">
-                
-                <button onclick="processYoutubeDownload()" class="w-full py-3 theme-gradient rounded-2xl text-white font-semibold text-sm shadow-lg hover:opacity-95 transition flex items-center justify-center">
-                    <i class="fa-solid fa-cloud-arrow-down mr-2"></i> Download Audio
-                </button>
+            <div class="space-y-2 max-h-[60vh] overflow-y-auto pr-2" id="playlistSelectionList">
+                <!-- Daftar playlist akan dimuat di sini -->
             </div>
-            <div id="downloadStatus" class="text-xs text-center text-pink-300 hidden">Menghubungkan ke server YouTube...</div>
-        </div>
-    </div>
-
-    <!-- Create Playlist Modal -->
-    <div id="playlistModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 space-y-4 border border-pink-500/30">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold cursive-title text-pink-400">Buat Playlist Baru</h3>
-                <button onclick="closeCreatePlaylistModal()" class="text-purple-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <input type="text" id="newPlaylistName" placeholder="Nama Playlist (cth: Santai Sore)" class="w-full px-4 py-3 bg-[#0b0614] border border-purple-900/60 rounded-2xl text-xs text-white placeholder-purple-400/50 focus:outline-none focus:border-pink-500">
-            <button onclick="saveNewPlaylist()" class="w-full py-3 theme-gradient rounded-2xl text-white font-semibold text-sm shadow-lg">
-                Simpan Playlist
+            <button onclick="openCreatePlaylistModal(); closeAddToPlaylistModal();" class="w-full mt-4 py-3 border border-pink-500/50 rounded-2xl text-pink-300 hover:bg-pink-500/10 font-medium text-sm transition">
+                + Buat Playlist Baru
             </button>
         </div>
     </div>
 
+    <!-- YouTube Importer Modal -->
+    <div id="youtubeModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 md:p-8 space-y-4 border border-pink-500/30 relative shadow-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg md:text-xl font-bold cursive-title text-pink-400 flex items-center">
+                    <i class="fa-brands fa-youtube mr-2 text-red-500"></i> Download YouTube
+                </h3>
+                <button onclick="closeYoutubeModal()" class="text-purple-400 hover:text-white transition bg-purple-900/40 w-8 h-8 rounded-full flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs md:text-sm text-purple-300">Masukkan link YouTube / YouTube Music untuk mengunduh lagu kualitas tinggi langsung ke aplikasi.</p>
+            
+            <div class="space-y-4 pt-2">
+                <input type="text" id="youtubeUrlInput" placeholder="https://youtu.be/..." class="w-full px-4 py-3 md:py-4 bg-[#0b0614] border border-purple-900/60 rounded-2xl text-sm text-white placeholder-purple-400/50 focus:outline-none focus:border-pink-500 transition shadow-inner">
+                
+                <button onclick="processYoutubeDownload()" class="w-full py-3 md:py-4 theme-gradient rounded-2xl text-white font-bold text-sm md:text-base shadow-lg hover:opacity-95 hover:scale-[1.02] transition flex items-center justify-center">
+                    <i class="fa-solid fa-cloud-arrow-down mr-2 text-lg"></i> Download & Simpan
+                </button>
+            </div>
+            <div id="downloadStatus" class="text-xs md:text-sm text-center text-pink-300 hidden p-3 bg-purple-900/30 rounded-xl border border-pink-500/20">Menghubungkan ke server...</div>
+        </div>
+    </div>
+
+    <!-- Create Playlist Modal -->
+    <div id="playlistModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm md:max-w-md rounded-3xl p-6 md:p-8 space-y-4 border border-pink-500/30 shadow-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg md:text-xl font-bold cursive-title text-pink-400">Buat Playlist Baru</h3>
+                <button onclick="closeCreatePlaylistModal()" class="text-purple-400 hover:text-white bg-purple-900/40 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="pt-2">
+                <input type="text" id="newPlaylistName" placeholder="Nama Playlist (cth: Santai Sore)" class="w-full px-4 py-3 md:py-4 bg-[#0b0614] border border-purple-900/60 rounded-2xl text-sm text-white placeholder-purple-400/50 focus:outline-none focus:border-pink-500 transition shadow-inner mb-4">
+                <button onclick="saveNewPlaylist()" class="w-full py-3 md:py-4 theme-gradient rounded-2xl text-white font-bold text-sm md:text-base shadow-lg hover:opacity-95 hover:scale-[1.02] transition">
+                    Simpan Playlist
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-[#160d26] border border-pink-500/40 px-5 py-3 rounded-2xl shadow-2xl text-xs text-white flex items-center space-x-3 transition-all duration-300 opacity-0 pointer-events-none">
-        <i class="fa-solid fa-circle-check text-pink-400 text-base"></i>
+    <div id="toast" class="fixed top-24 md:top-6 left-1/2 transform -translate-x-1/2 z-50 bg-[#160d26] border border-pink-500/40 px-5 py-3 md:px-6 md:py-4 rounded-2xl shadow-2xl text-xs md:text-sm font-medium text-white flex items-center space-x-3 transition-all duration-300 opacity-0 pointer-events-none">
+        <i class="fa-solid fa-circle-check text-pink-400 text-lg"></i>
         <span id="toastMsg">Notifikasi</span>
     </div>
 
     <!-- JavaScript Application Logic -->
     <script>
+        // Memastikan properti playlistIds ada pada setiap lagu
         let songs = JSON.parse(localStorage.getItem('nf_songs')) || [];
+        songs.forEach(song => {
+            if (!song.playlistIds) song.playlistIds = [];
+        });
 
-        let playlists = [
-            { id: 1, name: "Favorit Saya", count: 0, imageIcon: "fa-heart" },
-            { id: 2, name: "Santai Sore", count: 0, imageIcon: "fa-mug-hot" }
+        // Mengambil daftar playlist dari localStorage
+        let defaultPlaylists = [
+            { id: 1, name: "Favorit Saya", count: 0, imageIcon: "fa-heart", isDefault: true }
         ];
+        
+        let storedPlaylists = JSON.parse(localStorage.getItem('nf_playlists'));
+        let playlists = storedPlaylists ? storedPlaylists : defaultPlaylists;
 
-        // Daftar URL Radio Asli Murni HTTPS (Agregator)
-                let radioStations = [
-            { id: 1, name: "Prambors FM", genre: "Hits Anak Muda & Musik Terbaru", url: "https://masima.rastream.com/masima-pramborsjakarta", icon: "fa-headphones" },
-            { id: 2, name: "Delta FM", genre: "Lagu Enak 80an - Sekarang", url: "https://masima.rastream.com/masima-deltajakarta", icon: "fa-radio" },
-            { id: 3, name: "Hard Rock FM", genre: "Lifestyle & Classic Rock / Pop", url: "https://masima.rastream.com/masima-hardrockjakarta", icon: "fa-guitar" },
-            { id: 4, name: "Bens Radio", genre: "Radio Betawi & Musik Indonesia", url: "https://streaming.bensradio.com:8522/stream", icon: "fa-radio" },
-            { id: 5, name: "Radio Rodja", genre: "Kajian Islam & Religi", url: "https://radio.radiorodja.com/stream.mp3", icon: "fa-book-quran" },
-            { id: 6, name: "Suara Surabaya", genre: "Berita & Info Terkini", url: "https://stream.suarasurabaya.net/ssfm", icon: "fa-newspaper" },
-            { id: 7, name: "Gen FM Jakarta", genre: "Suara Musik Terkini", url: "https://stream-node0.radiomaya.com:8443/genfm", icon: "fa-music" },
-            { id: 8, name: "RRI Pro 3", genre: "Berita & Musik Indonesia", url: "https://stream-rri.akamaized.net/pro3.aac", icon: "fa-tower-broadcast" }
+        let radioStations = [
+            { id: 1, name: "Prambors FM Jakarta", genre: "Hits Anak Muda & Musik Terbaru", url: "http://103.24.105.90:9300/pjkt", logo: "https://static.wixstatic.com/media/f66dc6_9dc6cbfe361c4cb0bddbe39262ec761d~mv2.png/v1/fill/w_980,h_980,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/f66dc6_9dc6cbfe361c4cb0bddbe39262ec761d~mv2.png" },
+            { id: 2, name: "Bens Radio", genre: "Radio Betawi & Musik Indonesia", url: "https://streaming.bensradio.com:8522/stream", logo: "https://www.bensradio.com/wp-content/uploads/2026/02/logo-bens-baru-768x322.webp" },
+            { id: 3, name: "Jak FM 101", genre: "Hits & Pop Indonesia", url: "https://wz.mari.co.id:1936/noice_jakfm/jakfm/playlist.m3u8", logo: "https://images.noiceid.cc/catalog/content-1614529857498.jpg" },
+            { id: 4, name: "Gen FM Jakarta", genre: "Suara Musik Terkini & Pop", url: "https://ic.mari.co.id:8443/genfm", logo: "https://liveonlineradio.net/wp-content/uploads/2013/12/gen-fm-1.jpg" },
+            { id: 5, name: "Delta FM", genre: "Lagu Enak 80an - Sekarang", url: "https://stream.rcs.revma.com/k02rmq48kxcwv", logo: "https://static2.mytuner.mobi/media/tvos_radios/854/delta-fm.57e81899.png" },
+            { id: 6, name: "Hard Rock FM", genre: "Lifestyle & Classic Rock / Pop", url: "https://n06.radiojar.com/7csmg90fuqruv", logo: "https://static2.mytuner.mobi/media/tvos_radios/ez3L8yD3b3.png" },
+            { id: 7, name: "I-Radio Jakarta", genre: "Musik Indonesia", url: "https://stream.radiojar.com/4ywdgup3bnzuv", logo: "" },
+            { id: 8, name: "Elshinta FM Jakarta", genre: "Berita & Info Terkini", url: "https://stream-ssl.arenastreaming.com:8000/jakarta", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSslzl7tlGB12Br_2r7vntuYq1pMrDXk5HIG2LOERpfrYB2UVFu3j3SBSa-&s=10" },
+            { id: 9, name: "Mustang FM Jakarta", genre: "Berita & Musik", url: "https://103.246.184.62:1935/noice_mustangfm/mustangfm/chunklist.m3u8", logo: "https://mustang88fm.com/assets/img/xfavicon.ico.pagespeed.ic.zecamulnwf.png" }
         ];
 
         let currentSongIndex = 0;
@@ -420,11 +572,13 @@
         let isShuffle = false;
         let activeRadioIndex = null;
         let isRadioPlaying = false;
+        let songToAddToPlaylist = null;
+        let currentOpenPlaylistId = null;
+        let currentContextSongs = songs; // Lagu yang sedang tampil (Semua lagu atau lagu dalam playlist)
 
         const audioElement = new Audio();
         const radioElement = new Audio();
 
-        // PENAMBAHAN FITUR: Deteksi Otomatis Jika Server Radio Sedang Mati/Offline
         radioElement.onerror = function() {
             console.error("Gagal memuat stream radio dari server asal.");
             showToast("Stream Gagal: Server radio sedang offline / gangguan.");
@@ -434,6 +588,7 @@
         };
 
         window.onload = function() {
+            recalculatePlaylistCounts();
             renderSongs();
             renderPlaylists();
             renderMostPlayed();
@@ -455,6 +610,11 @@
 
         function saveSongsToStorage() {
             localStorage.setItem('nf_songs', JSON.stringify(songs));
+            recalculatePlaylistCounts();
+        }
+        
+        function savePlaylistsToStorage() {
+            localStorage.setItem('nf_playlists', JSON.stringify(playlists));
         }
 
         function formatTime(secs) {
@@ -466,25 +626,55 @@
 
         function switchTab(tabId) {
             currentTab = tabId;
-            ['beranda', 'playlist', 'sering', 'radio', 'tema'].forEach(t => {
-                const el = document.getElementById(`view-${t}`);
-                const nav = document.getElementById(`nav-${t}`);
-                if (t === tabId) {
-                    el.classList.remove('hidden');
-                    nav.classList.remove('text-purple-400/70');
-                    nav.classList.add('text-pink-400');
-                } else {
-                    el.classList.add('hidden');
-                    nav.classList.remove('text-pink-400');
-                    nav.classList.add('text-purple-400/70');
+            currentContextSongs = songs; // Reset context pemutaran ke semua lagu
+            
+            ['beranda', 'playlist', 'playlist-detail', 'sering', 'radio', 'tema'].forEach(t => {
+                const viewEl = document.getElementById(`view-${t}`);
+                if (viewEl) {
+                    if (t === tabId) {
+                        viewEl.classList.remove('hidden');
+                    } else {
+                        viewEl.classList.add('hidden');
+                    }
                 }
             });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Update warna navigasi (hanya untuk tab utama)
+            ['beranda', 'playlist', 'sering', 'radio', 'tema'].forEach(t => {
+                const navMobile = document.getElementById(`nav-mobile-${t}`);
+                const navDesktop = document.getElementById(`nav-desktop-${t}`);
+                
+                let isNavActive = (t === tabId) || (t === 'playlist' && tabId === 'playlist-detail');
+
+                if (isNavActive) {
+                    if (navMobile) {
+                        navMobile.classList.remove('text-purple-400/70');
+                        navMobile.classList.add('text-pink-400');
+                    }
+                    if (navDesktop) {
+                        navDesktop.classList.remove('text-purple-300', 'hover:text-pink-400');
+                        navDesktop.classList.add('text-pink-400', 'bg-purple-900/30');
+                    }
+                } else {
+                    if (navMobile) {
+                        navMobile.classList.remove('text-pink-400');
+                        navMobile.classList.add('text-purple-400/70');
+                    }
+                    if (navDesktop) {
+                        navDesktop.classList.remove('text-pink-400', 'bg-purple-900/30');
+                        navDesktop.classList.add('text-purple-300', 'hover:text-pink-400');
+                    }
+                }
+            });
+            
+            const mainContent = document.querySelector('.main-content');
+            if(mainContent) mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+            else window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderSongs() {
             const container = document.getElementById('songsContainer');
-            const query = document.getElementById('searchInput').value.toLowerCase();
+            const query = (document.getElementById('searchInput').value || document.getElementById('searchInputDesktop').value).toLowerCase();
             
             let filtered = songs.filter(song => {
                 const matchQuery = song.title.toLowerCase().includes(query) || song.artist.toLowerCase().includes(query);
@@ -497,83 +687,235 @@
             document.getElementById('count-favorit').innerText = songs.filter(s => s.liked).length;
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="text-center py-10 text-purple-400 text-xs">Pustaka kosong. Silakan download dari YouTube atau muat file lokal.</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-10 md:py-20 text-purple-400 text-sm md:text-base border border-dashed border-purple-900/50 rounded-3xl">Pustaka kosong. Silakan download dari YouTube atau muat file lokal.</div>`;
                 return;
             }
 
             container.innerHTML = filtered.map((song) => {
                 const realIndex = songs.findIndex(s => s.id === song.id);
-                const isCurrent = realIndex === currentSongIndex;
+                const isCurrent = realIndex === currentSongIndex && currentContextSongs === songs;
                 return `
-                    <div onclick="selectAndPlaySong(${realIndex})" class="glass-panel p-3 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-purple-950/40 transition border ${isCurrent ? 'border-pink-500 shadow-lg' : 'border-purple-900/30'}">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-xl ${isCurrent ? 'theme-gradient' : 'bg-purple-950/80 border border-purple-800/40'} flex items-center justify-center text-pink-300">
-                                <i class="fa-solid ${isCurrent && isPlaying ? 'fa-volume-high animate-bounce' : 'fa-music'} text-xs"></i>
+                    <div onclick="selectAndPlaySong(${realIndex}, 'all')" class="glass-panel p-3 md:p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-purple-950/40 hover:scale-[1.01] transition-all border ${isCurrent ? 'border-pink-500 shadow-lg' : 'border-purple-900/30'}">
+                        <div class="flex items-center space-x-3 md:space-x-4 overflow-hidden">
+                            <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl flex-shrink-0 ${isCurrent ? 'theme-gradient' : 'bg-purple-950/80 border border-purple-800/40'} flex items-center justify-center text-pink-300">
+                                <i class="fa-solid ${isCurrent && isPlaying ? 'fa-volume-high animate-bounce' : 'fa-music'} text-xs md:text-sm"></i>
                             </div>
-                            <div>
-                                <h4 class="text-sm font-semibold text-white truncate max-w-[180px]">${song.title}</h4>
-                                <p class="text-xs text-pink-400/80 truncate max-w-[180px]">${song.artist}</p>
+                            <div class="overflow-hidden">
+                                <h4 class="text-sm md:text-base font-semibold text-white truncate max-w-[140px] md:max-w-[200px] lg:max-w-[250px]">${song.title}</h4>
+                                <p class="text-xs md:text-sm text-pink-400/80 truncate max-w-[140px] md:max-w-[200px]">${song.artist}</p>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-3">
-                            <span class="text-xs text-purple-400 font-mono">${song.duration}</span>
-                            <button onclick="event.stopPropagation(); toggleLike(${song.id})" class="text-purple-400 hover:text-pink-400 p-1">
-                                <i class="fa-${song.liked ? 'solid text-pink-500' : 'regular'} fa-heart text-sm"></i>
+                        <div class="flex items-center space-x-2 md:space-x-3 flex-shrink-0">
+                            <span class="hidden md:inline-block text-xs md:text-sm text-purple-400 font-mono mr-2">${song.duration}</span>
+                            <button onclick="event.stopPropagation(); toggleLike(${song.id})" class="text-purple-400 hover:text-pink-400 p-1 md:p-2 transition" title="Favorit">
+                                <i class="fa-${song.liked ? 'solid text-pink-500' : 'regular'} fa-heart text-sm md:text-lg"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); openAddToPlaylistModal(${song.id})" class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-purple-900/50 flex items-center justify-center text-purple-300 hover:bg-pink-500/20 hover:text-pink-400 transition" title="Tambah ke Playlist">
+                                <i class="fa-solid fa-plus text-xs"></i>
                             </button>
                         </div>
                     </div>
                 `;
             }).join('');
         }
+        
+        function recalculatePlaylistCounts() {
+            playlists.forEach(pl => {
+                if(pl.id === 1) { // Favorit
+                    pl.count = songs.filter(s => s.liked).length;
+                } else {
+                    pl.count = songs.filter(s => s.playlistIds && s.playlistIds.includes(pl.id)).length;
+                }
+            });
+            savePlaylistsToStorage();
+        }
 
         function renderPlaylists() {
+            recalculatePlaylistCounts();
             const container = document.getElementById('popularPlaylistsContainer');
             const fullContainer = document.getElementById('fullPlaylistContainer');
-            document.getElementById('playlist-count').innerText = playlists.length;
+            
+            // Render 4 Playlist Populer (Atau kurang)
+            const popularHtml = playlists.slice(0, 4).map((pl) => generatePlaylistCard(pl)).join('');
+            
+            // Render Semua Playlist
+            const allHtml = playlists.map((pl) => generatePlaylistCard(pl)).join('');
 
-            const html = playlists.map((pl) => `
-                <div class="playlist-card-gradient p-4 rounded-2xl flex flex-col justify-between h-32 relative overflow-hidden shadow-lg border border-pink-500/20 cursor-pointer group hover:scale-[1.02] transition">
-                    <div class="absolute right-3 top-3 w-7 h-7 bg-black/30 backdrop-blur-md rounded-lg flex items-center justify-center text-white text-xs">
-                        <i class="fa-solid fa-camera"></i>
+            if(container) container.innerHTML = popularHtml;
+            if(fullContainer) fullContainer.innerHTML = allHtml;
+        }
+        
+        function generatePlaylistCard(pl) {
+            return `
+                <div onclick="openPlaylistDetail(${pl.id})" class="playlist-card-gradient p-4 md:p-5 rounded-2xl md:rounded-3xl flex flex-col justify-between h-32 md:h-40 relative overflow-hidden shadow-lg border border-pink-500/20 cursor-pointer group hover:-translate-y-1 hover:shadow-pink-500/20 transition-all duration-300">
+                    <div class="absolute right-3 top-3 md:right-4 md:top-4 w-7 h-7 md:w-9 md:h-9 bg-black/30 backdrop-blur-md rounded-lg md:rounded-xl flex items-center justify-center text-white text-xs md:text-sm group-hover:bg-pink-500 transition">
+                        <i class="fa-solid fa-play ml-0.5 opacity-0 group-hover:opacity-100 absolute transition"></i>
+                        <i class="fa-solid fa-camera group-hover:opacity-0 transition"></i>
                     </div>
-                    <div class="mt-2">
-                        <i class="fa-solid ${pl.imageIcon || 'fa-music'} text-white/80 text-xl mb-1"></i>
+                    <div class="mt-2 md:mt-4">
+                        <i class="fa-solid ${pl.imageIcon || 'fa-music'} text-white/80 text-xl md:text-3xl mb-1 md:mb-2"></i>
                     </div>
                     <div>
-                        <h4 class="font-bold text-sm text-white truncate">${pl.name}</h4>
-                        <p class="text-[11px] text-pink-200">${songs.length} lagu</p>
+                        <h4 class="font-bold text-sm md:text-lg text-white truncate">${pl.name}</h4>
+                        <p class="text-[11px] md:text-xs text-pink-200">${pl.count} lagu</p>
                     </div>
                 </div>
-            `).join('');
-
-            container.innerHTML = html;
-            fullContainer.innerHTML = html;
+            `;
         }
+
+        // ============ FUNGSI BARU UNTUK PLAYLIST ============ //
+        function openPlaylistDetail(playlistId) {
+            currentOpenPlaylistId = playlistId;
+            const playlist = playlists.find(p => p.id === playlistId);
+            if(!playlist) return;
+
+            document.getElementById('detailPlaylistTitle').innerText = playlist.name;
+            
+            // Kumpulkan lagu-lagu di playlist ini
+            let playlistSongs = [];
+            if(playlist.id === 1) { // Favorit
+                playlistSongs = songs.filter(s => s.liked);
+            } else {
+                playlistSongs = songs.filter(s => s.playlistIds && s.playlistIds.includes(playlist.id));
+            }
+            
+            document.getElementById('detailPlaylistInfo').innerText = `${playlistSongs.length} Lagu`;
+            
+            const container = document.getElementById('playlistSongsContainer');
+            
+            if (playlistSongs.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-10 md:py-16 text-purple-400 text-sm border border-dashed border-purple-900/50 rounded-3xl">Belum ada lagu di playlist ini.</div>`;
+            } else {
+                container.innerHTML = playlistSongs.map((song, idx) => {
+                    const realIndex = songs.findIndex(s => s.id === song.id);
+                    const isCurrent = realIndex === currentSongIndex && currentContextSongs === playlistSongs;
+                    
+                    return `
+                        <div onclick="selectAndPlaySong(${realIndex}, 'playlist', ${playlist.id})" class="glass-panel p-3 md:p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-purple-950/40 hover:scale-[1.01] transition-all border ${isCurrent ? 'border-pink-500 shadow-lg' : 'border-purple-900/30'}">
+                            <div class="flex items-center space-x-3 md:space-x-4 overflow-hidden">
+                                <div class="px-2 md:px-3 text-xs md:text-sm font-bold text-purple-400 w-6 flex-shrink-0 text-center">${idx + 1}</div>
+                                <div class="overflow-hidden">
+                                    <h4 class="text-sm md:text-base font-semibold text-white truncate max-w-[150px] md:max-w-[250px]">${song.title}</h4>
+                                    <p class="text-xs md:text-sm text-pink-400/80 truncate">${song.artist}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3 flex-shrink-0">
+                                <span class="hidden md:inline-block text-xs text-purple-400 font-mono">${song.duration}</span>
+                                <button onclick="event.stopPropagation(); removeSongFromPlaylist(${song.id}, ${playlist.id})" class="p-1 md:p-2 text-purple-400 hover:text-red-400 transition" title="Hapus dari Playlist">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            switchTab('playlist-detail');
+        }
+
+        function openAddToPlaylistModal(songId) {
+            songToAddToPlaylist = songId;
+            const song = songs.find(s => s.id === songId);
+            if(!song) return;
+
+            const listContainer = document.getElementById('playlistSelectionList');
+            
+            // Tampilkan daftar playlist (kecuali 'Favorit Saya' karena pakai tombol hati)
+            const availablePlaylists = playlists.filter(p => !p.isDefault);
+            
+            if (availablePlaylists.length === 0) {
+                listContainer.innerHTML = `<p class="text-center text-xs text-purple-300 py-4">Belum ada playlist kustom.</p>`;
+            } else {
+                listContainer.innerHTML = availablePlaylists.map(pl => {
+                    const isAlreadyInPlaylist = song.playlistIds && song.playlistIds.includes(pl.id);
+                    return `
+                        <div onclick="toggleSongInPlaylist(${pl.id})" class="flex items-center justify-between p-3 rounded-xl cursor-pointer hover:bg-purple-900/30 border border-transparent hover:border-purple-500/30 transition">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid ${pl.imageIcon} text-pink-400"></i>
+                                <span class="text-sm text-white">${pl.name}</span>
+                            </div>
+                            <i class="fa-solid fa-circle-check text-lg ${isAlreadyInPlaylist ? 'text-pink-500' : 'text-purple-900/50'}"></i>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            document.getElementById('addToPlaylistModal').classList.remove('hidden');
+        }
+
+        function closeAddToPlaylistModal() {
+            document.getElementById('addToPlaylistModal').classList.add('hidden');
+            songToAddToPlaylist = null;
+        }
+
+        function toggleSongInPlaylist(playlistId) {
+            if(!songToAddToPlaylist) return;
+            
+            const song = songs.find(s => s.id === songToAddToPlaylist);
+            if(!song) return;
+            
+            if(!song.playlistIds) song.playlistIds = [];
+            
+            const index = song.playlistIds.indexOf(playlistId);
+            if (index > -1) {
+                song.playlistIds.splice(index, 1);
+                showToast("Lagu dihapus dari playlist");
+            } else {
+                song.playlistIds.push(playlistId);
+                showToast("Lagu ditambahkan ke playlist!");
+            }
+            
+            saveSongsToStorage();
+            renderPlaylists();
+            
+            // Refresh modal tampilan
+            openAddToPlaylistModal(songToAddToPlaylist); 
+        }
+
+        function removeSongFromPlaylist(songId, playlistId) {
+            const song = songs.find(s => s.id === songId);
+            if(!song) return;
+            
+            if(playlistId === 1) { // Menghapus dari Favorit
+                song.liked = false;
+            } else {
+                const index = song.playlistIds.indexOf(playlistId);
+                if (index > -1) {
+                    song.playlistIds.splice(index, 1);
+                }
+            }
+            
+            saveSongsToStorage();
+            renderPlaylists();
+            openPlaylistDetail(playlistId); // Refresh halaman detail
+            showToast("Lagu dihapus dari playlist");
+        }
+        // ============ END FUNGSI PLAYLIST ============ //
 
         function renderMostPlayed() {
             const container = document.getElementById('mostPlayedContainer');
             const sorted = [...songs].sort((a, b) => b.plays - a.plays);
 
             if (sorted.length === 0) {
-                container.innerHTML = `<div class="text-center py-10 text-purple-400 text-xs">Belum ada riwayat pemutaran musik.</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-10 md:py-20 text-purple-400 text-sm md:text-base border border-dashed border-purple-900/50 rounded-3xl">Belum ada riwayat pemutaran musik.</div>`;
                 return;
             }
 
             container.innerHTML = sorted.map((song, idx) => `
-                <div onclick="selectAndPlaySong(${songs.findIndex(s => s.id === song.id)})" class="glass-panel p-3.5 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-purple-950/40 transition border border-purple-900/30">
-                    <div class="flex items-center space-x-3">
-                        <div class="px-2.5 py-1 bg-gradient-to-r from-amber-500 to-pink-500 rounded-lg text-white font-bold text-xs shadow-md">
+                <div onclick="selectAndPlaySong(${songs.findIndex(s => s.id === song.id)}, 'all')" class="glass-panel p-3.5 md:p-5 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-purple-950/40 hover:scale-[1.01] transition-all border border-purple-900/30">
+                    <div class="flex items-center space-x-3 md:space-x-4">
+                        <div class="px-2.5 py-1 md:px-3 md:py-1.5 bg-gradient-to-r from-amber-500 to-pink-500 rounded-lg text-white font-bold text-xs md:text-sm shadow-md flex-shrink-0">
                             #${idx + 1}
                         </div>
-                        <div>
-                            <h4 class="text-sm font-semibold text-white">${song.title}</h4>
-                            <p class="text-xs text-pink-400">${song.artist} • <span class="text-purple-300">${song.plays}x diputar</span></p>
+                        <div class="overflow-hidden">
+                            <h4 class="text-sm md:text-base font-semibold text-white truncate max-w-[150px] md:max-w-[200px] lg:max-w-[250px]">${song.title}</h4>
+                            <p class="text-xs md:text-sm text-pink-400 truncate">${song.artist} • <span class="text-purple-300">${song.plays}x diputar</span></p>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <span class="text-xs text-purple-400 font-mono">${song.duration}</span>
-                        <button onclick="event.stopPropagation(); toggleLike(${song.id})" class="text-purple-400 hover:text-pink-400 p-1">
-                            <i class="fa-${song.liked ? 'solid text-pink-500' : 'regular'} fa-heart"></i>
+                    <div class="flex items-center space-x-3 md:space-x-4 flex-shrink-0">
+                        <span class="text-xs md:text-sm text-purple-400 font-mono">${song.duration}</span>
+                        <button onclick="event.stopPropagation(); toggleLike(${song.id})" class="text-purple-400 hover:text-pink-400 p-1 md:p-2 transition">
+                            <i class="fa-${song.liked ? 'solid text-pink-500' : 'regular'} fa-heart md:text-lg"></i>
                         </button>
                     </div>
                 </div>
@@ -583,24 +925,25 @@
         function renderRadioStations() {
             const container = document.getElementById('radioStationsList');
             container.innerHTML = radioStations.map((station, idx) => `
-                <div onclick="playRadioStation(${idx})" class="glass-panel p-3.5 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-purple-950/50 transition border ${activeRadioIndex === idx ? 'border-pink-500 bg-purple-950/40' : 'border-purple-900/30'}">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl theme-gradient flex items-center justify-center text-white">
-                            <i class="fa-solid ${station.icon} text-sm"></i>
+                <div onclick="playRadioStation(${idx})" class="glass-panel p-3.5 md:p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-purple-950/50 hover:scale-[1.02] transition-all border ${activeRadioIndex === idx ? 'border-pink-500 bg-purple-950/40 shadow-lg shadow-pink-500/10' : 'border-purple-900/30'}">
+                    <div class="flex items-center space-x-3 md:space-x-4">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl overflow-hidden bg-purple-950 flex items-center justify-center border border-purple-800/40 flex-shrink-0">
+                            ${station.logo ? `<img src="${station.logo}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-tower-broadcast text-sm md:text-base text-pink-300"></i>`}
                         </div>
-                        <div>
-                            <h4 class="text-sm font-semibold text-white">${station.name}</h4>
-                            <p class="text-xs text-pink-400">${station.genre}</p>
+                        <div class="overflow-hidden">
+                            <h4 class="text-sm md:text-base font-semibold text-white truncate max-w-[140px] md:max-w-[200px]">${station.name}</h4>
+                            <p class="text-xs md:text-sm text-pink-400 truncate max-w-[140px] md:max-w-[200px]">${station.genre}</p>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        ${activeRadioIndex === idx && isRadioPlaying ? '<span class="flex h-3 w-3 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span></span>' : '<i class="fa-solid fa-play text-xs text-purple-400"></i>'}
+                    <div class="flex items-center space-x-2 flex-shrink-0 pl-2">
+                        ${activeRadioIndex === idx && isRadioPlaying ? '<span class="flex h-3 w-3 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span></span>' : '<i class="fa-solid fa-play text-xs md:text-sm text-purple-400 hover:text-pink-400 transition"></i>'}
                     </div>
                 </div>
             `).join('');
         }
 
-        function selectAndPlaySong(index) {
+        // Diubah untuk mendukung pemutaran dalam konteks Playlist
+        function selectAndPlaySong(index, context = 'all', playlistId = null) {
             if (songs.length === 0) return;
             if (isRadioPlaying) {
                 radioElement.pause();
@@ -610,6 +953,18 @@
 
             currentSongIndex = index;
             const song = songs[currentSongIndex];
+            
+            // Set context pemutaran (apakah sedang memutar semua lagu atau dari dalam playlist tertentu)
+            if (context === 'playlist' && playlistId) {
+                if(playlistId === 1) {
+                    currentContextSongs = songs.filter(s => s.liked);
+                } else {
+                    currentContextSongs = songs.filter(s => s.playlistIds && s.playlistIds.includes(playlistId));
+                }
+            } else {
+                currentContextSongs = songs;
+            }
+
             song.plays += 1;
             saveSongsToStorage();
             
@@ -617,8 +972,12 @@
             audioElement.play().then(() => {
                 isPlaying = true;
                 updatePlayerBar();
-                renderSongs();
-                renderMostPlayed();
+                
+                // Render ulang tampilan agar indikator animasi bermain (equalizer bounce) muncul
+                if(currentTab === 'beranda') renderSongs();
+                else if (currentTab === 'playlist-detail') openPlaylistDetail(currentOpenPlaylistId);
+                else if (currentTab === 'sering') renderMostPlayed();
+                
             }).catch(() => {
                 showToast("Memutar audio.");
                 isPlaying = true;
@@ -647,19 +1006,43 @@
                 isPlaying = true;
             }
             updatePlayerBar();
-            renderSongs();
+            
+            // Update visual icon
+            if(currentTab === 'beranda') renderSongs();
+            else if (currentTab === 'playlist-detail') openPlaylistDetail(currentOpenPlaylistId);
         }
 
         function nextSong() {
-            if (songs.length === 0) return;
-            currentSongIndex = (currentSongIndex + 1) % songs.length;
-            selectAndPlaySong(currentSongIndex);
+            if (currentContextSongs.length === 0) return;
+            
+            let nextIndexInContext = 0;
+            
+            // Mencari urutan lagu ini di dalam context yang sedang diputar
+            const currentIndexInContext = currentContextSongs.findIndex(s => s.id === songs[currentSongIndex].id);
+            
+            if (isShuffle) {
+                nextIndexInContext = Math.floor(Math.random() * currentContextSongs.length);
+            } else {
+                nextIndexInContext = (currentIndexInContext + 1) % currentContextSongs.length;
+            }
+            
+            // Kembalikan ke realIndex di array songs utama
+            const nextRealIndex = songs.findIndex(s => s.id === currentContextSongs[nextIndexInContext].id);
+            
+            // Play tanpa mengubah context
+            const isContextPlaylist = currentContextSongs !== songs;
+            selectAndPlaySong(nextRealIndex, isContextPlaylist ? 'playlist' : 'all', currentOpenPlaylistId);
         }
 
         function prevSong() {
-            if (songs.length === 0) return;
-            currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-            selectAndPlaySong(currentSongIndex);
+             if (currentContextSongs.length === 0) return;
+             
+            const currentIndexInContext = currentContextSongs.findIndex(s => s.id === songs[currentSongIndex].id);
+            const prevIndexInContext = (currentIndexInContext - 1 + currentContextSongs.length) % currentContextSongs.length;
+            const prevRealIndex = songs.findIndex(s => s.id === currentContextSongs[prevIndexInContext].id);
+            
+            const isContextPlaylist = currentContextSongs !== songs;
+            selectAndPlaySong(prevRealIndex, isContextPlaylist ? 'playlist' : 'all', currentOpenPlaylistId);
         }
 
         function updatePlayerBar() {
@@ -675,10 +1058,14 @@
             document.getElementById('totalDuration').innerText = song.duration;
             
             const mainIcon = document.getElementById('mainPlayIcon');
-            mainIcon.className = isPlaying ? "fa-solid fa-pause text-sm" : "fa-solid fa-play text-sm ml-0.5";
+            mainIcon.className = isPlaying ? "fa-solid fa-pause text-sm md:text-base" : "fa-solid fa-play text-sm md:text-base ml-0.5";
 
             const likeBtn = document.getElementById('playerLikeBtn');
-            likeBtn.innerHTML = `<i class="fa-${song.liked ? 'solid text-pink-500' : 'regular'} fa-heart text-base"></i>`;
+            const likeBtnDesktop = document.getElementById('playerLikeBtnDesktop');
+            const likeHtml = `<i class="fa-${song.liked ? 'solid text-pink-500' : 'regular'} fa-heart text-base md:text-xl"></i>`;
+            
+            if (likeBtn) likeBtn.innerHTML = likeHtml;
+            if (likeBtnDesktop) likeBtnDesktop.innerHTML = likeHtml;
         }
 
         function seekAudio(val) {
@@ -692,8 +1079,13 @@
             if (song) {
                 song.liked = !song.liked;
                 saveSongsToStorage();
-                renderSongs();
-                renderMostPlayed();
+                
+                // Render tab yang sedang aktif
+                if(currentTab === 'beranda') renderSongs();
+                else if (currentTab === 'sering') renderMostPlayed();
+                else if (currentTab === 'playlist-detail') openPlaylistDetail(currentOpenPlaylistId);
+                
+                renderPlaylists(); // update counter favorit
                 updatePlayerBar();
                 showToast(song.liked ? "Ditambahkan ke Favorit" : "Dihapus dari Favorit");
             }
@@ -709,10 +1101,10 @@
             isShuffle = !isShuffle;
             const btn = document.getElementById('shuffleBtn');
             if (isShuffle) {
-                btn.classList.add('text-pink-400', 'border-pink-500');
+                btn.classList.add('text-pink-400', 'border-pink-500', 'bg-purple-900/30');
                 showToast("Mode Acak Aktif");
             } else {
-                btn.classList.remove('text-pink-400', 'border-pink-500');
+                btn.classList.remove('text-pink-400', 'border-pink-500', 'bg-purple-900/30');
                 showToast("Mode Acak Nonaktif");
             }
         }
@@ -721,13 +1113,16 @@
             currentFilter = filter;
             const pillSemua = document.getElementById('pill-semua');
             const pillFavorit = document.getElementById('pill-favorit');
+            
+            const activeClass = "px-5 py-2 md:px-8 md:py-2.5 rounded-full text-sm font-medium theme-gradient text-white shadow-lg whitespace-nowrap transition";
+            const inactiveClass = "px-5 py-2 md:px-8 md:py-2.5 rounded-full text-sm font-medium bg-[#160d26] border border-purple-900/50 text-purple-300 hover:text-white whitespace-nowrap transition";
 
             if (filter === 'semua') {
-                pillSemua.className = "px-5 py-2 rounded-full text-sm font-medium theme-gradient text-white shadow-lg whitespace-nowrap transition";
-                pillFavorit.className = "px-5 py-2 rounded-full text-sm font-medium bg-[#160d26] border border-purple-900/50 text-purple-300 hover:text-white whitespace-nowrap transition";
+                pillSemua.className = activeClass;
+                pillFavorit.className = inactiveClass;
             } else {
-                pillFavorit.className = "px-5 py-2 rounded-full text-sm font-medium theme-gradient text-white shadow-lg whitespace-nowrap transition";
-                pillSemua.className = "px-5 py-2 rounded-full text-sm font-medium bg-[#160d26] border border-purple-900/50 text-purple-300 hover:text-white whitespace-nowrap transition";
+                pillFavorit.className = activeClass;
+                pillSemua.className = inactiveClass;
             }
             renderSongs();
         }
@@ -747,12 +1142,11 @@
 
         function playAll() {
             if (songs.length > 0) {
-                selectAndPlaySong(0);
+                selectAndPlaySong(0, 'all');
                 showToast("Memutar semua daftar lagu");
             }
         }
 
-        // YouTube Importer & Backend Proxy Integration
         function openYoutubeModal() { document.getElementById('youtubeModal').classList.remove('hidden'); }
         function closeYoutubeModal() { document.getElementById('youtubeModal').classList.add('hidden'); }
 
@@ -793,7 +1187,6 @@
                     console.log("Gagal ambil oembed title:", e);
                 }
 
-                // Menembak Backend Mandiri Railway Abang
                 const apiResponse = await fetch(`https://nf-music-server-production.up.railway.app/download?id=${videoId}`);
                 const data = await apiResponse.json();
 
@@ -807,7 +1200,8 @@
                         duration: data.duration ? formatTime(data.duration) : "03:45",
                         durationSec: data.duration || 225,
                         plays: 1,
-                        liked: true,
+                        liked: false,
+                        playlistIds: [], // array kosong untuk lagu baru
                         audioSrc: downloadUrl
                     };
 
@@ -818,9 +1212,9 @@
                     renderSongs();
                     renderMostPlayed();
                     renderPlaylists();
-                    showToast("Lagu berhasil disimpan permanen!");
+                    showToast("Lagu berhasil disimpan!");
                     document.getElementById('youtubeUrlInput').value = "";
-                    selectAndPlaySong(0);
+                    selectAndPlaySong(0, 'all');
                 } else {
                     statusEl.innerText = "Gagal memproses audio dari server. Coba link lain.";
                     setTimeout(() => statusEl.classList.add('hidden'), 3000);
@@ -832,7 +1226,6 @@
             }
         }
 
-        // Multi-Select Import Semua File Perangkat Sekaligus
         function handleLocalFiles(event) {
             const files = event.target.files;
             if (files.length > 0) {
@@ -847,6 +1240,7 @@
                         durationSec: 210,
                         plays: 1,
                         liked: false,
+                        playlistIds: [], // array kosong untuk lagu baru
                         audioSrc: blobUrl
                     };
                     songs.unshift(newSong);
@@ -866,7 +1260,6 @@
             showToast("Pustaka musik berhasil disegarkan.");
         }
 
-        // Radio FM Functions
         function playRadioStation(index) {
             if (isPlaying) {
                 audioElement.pause();
@@ -878,7 +1271,13 @@
             const station = radioStations[index];
             document.getElementById('currentRadioName').innerText = station.name;
             document.getElementById('currentRadioGenre').innerText = station.genre;
-            document.getElementById('radioIcon').className = `fa-solid ${station.icon} text-3xl`;
+            
+            const radioIconContainer = document.getElementById('radioLogoContainer');
+            if (station.logo) {
+                radioIconContainer.innerHTML = `<img src="${station.logo}" class="w-full h-full object-cover">`;
+            } else {
+                radioIconContainer.innerHTML = `<i class="fa-solid fa-broadcast-tower text-3xl md:text-5xl text-white"></i>`;
+            }
 
             radioElement.src = station.url;
             radioElement.load();
@@ -889,7 +1288,6 @@
                 showToast(`Memutar: ${station.name}`);
             }).catch((err) => {
                 console.error(err);
-                // Biarkan error handler yang menangani notifikasinya
             });
         }
 
@@ -916,7 +1314,7 @@
 
         function updateRadioPlayButton() {
             const icon = document.getElementById('radioPlayIcon');
-            icon.className = isRadioPlaying ? "fa-solid fa-pause text-xl" : "fa-solid fa-play text-xl ml-0.5";
+            icon.className = isRadioPlaying ? "fa-solid fa-pause text-xl md:text-2xl" : "fa-solid fa-play text-xl md:text-2xl ml-0.5";
         }
 
         function nextRadio() {
@@ -934,7 +1332,6 @@
             audioElement.volume = val;
         }
 
-        // Fungsi Tema Dinamis
         function setThemeAccent(theme) {
             const body = document.getElementById('appBody');
             
@@ -981,8 +1378,15 @@
                 return;
             }
             playlists.push({ id: Date.now(), name: name, count: 0, imageIcon: "fa-compact-disc" });
+            savePlaylistsToStorage();
             closeCreatePlaylistModal();
             renderPlaylists();
+            
+            // Jika dipanggil dari dalam modal add to playlist, refresh daftar di sana
+            if(!document.getElementById('addToPlaylistModal').classList.contains('hidden')) {
+                openAddToPlaylistModal(songToAddToPlaylist);
+            }
+            
             showToast(`Playlist "${name}" berhasil dibuat!`);
             document.getElementById('newPlaylistName').value = "";
         }
