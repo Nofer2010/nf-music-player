@@ -1196,6 +1196,9 @@
                 return;
             }
 
+            // === TAMBAHKAN BARIS IKLAN DI SINI ===
+          window.open('https://omg10.com/4/11881590', '_blank');
+
             const videoId = extractYouTubeID(url);
             if (!videoId) {
                 showToast("Format Link YouTube tidak dikenali!");
@@ -1299,6 +1302,10 @@
                 updatePlayerBar();
             }
 
+            // === IKLAN MUNCUL 50% KESEMPATAN SAAT GANTI RADIO ===
+            if (Math.random() > 0.5) {
+            window.open('https://omg10.com/4/11881590', '_blank');
+    }
             activeRadioIndex = index;
             const station = radioStations[index];
             document.getElementById('currentRadioName').innerText = station.name;
