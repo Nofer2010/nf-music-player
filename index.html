@@ -80,6 +80,26 @@
             animation: pulse-ring 3s infinite ease-in-out;
         }
         
+        /* Animasi Piringan Hitam Berputar */
+        @keyframes spin-vinyl {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-vinyl {
+            animation: spin-vinyl 10s linear infinite;
+        }
+        .animate-spin-paused {
+            animation-play-state: paused;
+        }
+
+        /* Posisi Jarum Tonearm */
+        .tonearm-playing {
+            transform: rotate(0deg) !important;
+        }
+        .tonearm-paused {
+            transform: rotate(-25deg) !important;
+        }
+        
         /* Tambahan CSS untuk Tampilan Desktop/Tablet */
         @media (min-width: 768px) {
             .app-container {
@@ -420,7 +440,8 @@
                 </div>
 
                 <div class="flex items-center justify-between md:order-1 md:w-1/4 min-w-[200px]">
-                    <div class="flex items-center space-x-3 overflow-hidden cursor-pointer">
+                    <!-- TAMBAHAN: onclick="openFullPlayer()" ke mini player -->
+                    <div onclick="openFullPlayer()" class="flex items-center space-x-3 overflow-hidden cursor-pointer">
                         <div class="w-11 h-11 md:w-14 md:h-14 rounded-xl theme-gradient flex items-center justify-center flex-shrink-0 neon-glow">
                             <i class="fa-solid fa-music text-white text-sm md:text-lg" id="playerThumbIcon"></i>
                         </div>
@@ -482,6 +503,91 @@
             <span class="text-[10px] font-medium cursive-title text-base">Tema</span>
         </button>
     </nav>
+
+    <!-- Fullscreen Player Modal (Sedang Diputar) -->
+    <div id="fullPlayerModal" class="fixed inset-0 z-50 bg-[#0b0614] flex flex-col justify-between p-6 transition-transform duration-500 transform translate-y-full overflow-hidden">
+        <!-- Top Bar -->
+        <div class="flex items-center justify-between text-purple-300 pt-2">
+            <button onclick="closeFullPlayer()" class="w-10 h-10 flex items-center justify-center rounded-full bg-purple-900/30 hover:bg-purple-900/60 transition text-white">
+                <i class="fa-solid fa-chevron-down text-xl"></i>
+            </button>
+            <span class="text-sm font-semibold tracking-wide uppercase text-purple-200 cursive-title text-lg">Sedang Diputar</span>
+            <button class="w-10 h-10 flex items-center justify-center rounded-full text-purple-300">
+                <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Vinyl Record Container -->
+        <div class="relative w-72 h-72 md:w-80 md:h-80 mx-auto my-auto flex items-center justify-center">
+            <!-- Vinyl Disk -->
+            <div id="vinylDisk" class="w-full h-full rounded-full bg-gradient-to-tr from-gray-950 via-black to-gray-800 border-4 border-gray-900 shadow-2xl flex items-center justify-center relative overflow-hidden transition-transform animate-spin-vinyl animate-spin-paused">
+                <div class="absolute inset-4 rounded-full border border-gray-800/60"></div>
+                <div class="absolute inset-10 rounded-full border border-gray-800/80"></div>
+                <div class="absolute inset-16 rounded-full border border-gray-800/60"></div>
+                <div class="absolute inset-24 rounded-full border border-gray-800/80"></div>
+                
+                <!-- Vinyl Center Label -->
+                <div class="w-24 h-24 rounded-full theme-gradient flex items-center justify-center border-4 border-black shadow-inner">
+                    <i class="fa-solid fa-compact-disc text-4xl text-white/80"></i>
+                </div>
+            </div>
+
+            <!-- Jarum Pemutar (Tonearm) -->
+            <div id="toneArm" class="absolute -top-6 right-2 w-20 h-32 pointer-events-none transition-transform duration-500 origin-top-right tonearm-paused z-10">
+                <div class="w-1.5 h-24 bg-gradient-to-b from-gray-300 to-gray-500 mx-auto rounded-full shadow-lg"></div>
+                <div class="w-4 h-7 bg-pink-500 rounded-sm mx-auto shadow-md -mt-1 border border-pink-400"></div>
+            </div>
+        </div>
+
+        <!-- Song Info & Controls -->
+        <div class="space-y-5 max-w-md mx-auto w-full pb-4">
+            <div class="flex items-center justify-between">
+                <div class="overflow-hidden">
+                    <h2 id="fullSongTitle" class="text-xl md:text-2xl font-bold text-white truncate">Belum ada lagu</h2>
+                    <p id="fullSongArtist" class="text-sm text-pink-400 truncate italic">Pilih musik</p>
+                </div>
+                <button id="fullLikeBtn" onclick="toggleLikeCurrent()" class="px-4 py-2 rounded-full theme-gradient text-white text-xs font-semibold flex items-center space-x-1.5 shadow-md hover:scale-105 transition">
+                    <i class="fa-regular fa-heart"></i>
+                    <span>Simpan</span>
+                </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="space-y-1">
+                <input type="range" id="fullProgressBar" min="0" max="100" value="0" oninput="seekAudio(this.value)" class="w-full h-1.5 bg-purple-900/60 rounded-lg appearance-none cursor-pointer accent-pink-500">
+                <div class="flex justify-between text-xs font-mono text-purple-300">
+                    <span id="fullCurrentTime">00:00</span>
+                    <span id="fullTotalDuration">00:00</span>
+                </div>
+            </div>
+
+            <!-- Media Player Controls -->
+            <div class="flex items-center justify-between px-2 text-white">
+                <button onclick="toggleShuffle()" id="fullShuffleBtn" class="text-purple-300 hover:text-pink-400 transition text-lg">
+                    <i class="fa-solid fa-shuffle"></i>
+                </button>
+                <button onclick="prevSong()" class="text-purple-300 hover:text-white transition text-2xl">
+                    <i class="fa-solid fa-backward-step"></i>
+                </button>
+                <button onclick="togglePlay()" class="w-16 h-16 rounded-full theme-gradient flex items-center justify-center text-white shadow-xl hover:scale-105 transition">
+                    <i class="fa-solid fa-play text-2xl ml-1" id="fullPlayIcon"></i>
+                </button>
+                <button onclick="nextSong()" class="text-purple-300 hover:text-white transition text-2xl">
+                    <i class="fa-solid fa-forward-step"></i>
+                </button>
+                <button class="text-purple-300 hover:text-pink-400 transition text-lg">
+                    <i class="fa-solid fa-repeat"></i>
+                </button>
+            </div>
+
+            <div class="pt-2 text-center">
+                <button onclick="closeFullPlayer(); switchTab('beranda');" class="px-5 py-2 rounded-full bg-purple-950/60 border border-purple-800/40 text-xs text-pink-300 inline-flex items-center space-x-2 hover:bg-purple-900/60 transition">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                    <span>Antrean Pemutaran</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Pilih Playlist -->
     <div id="addToPlaylistModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -624,16 +730,21 @@
             };
 
             // PERBAIKAN: Selalu gunakan audioElement.duration yang asli untuk progress bar
+            // TAMBAHAN: update progress bar fullscreen
             audioElement.ontimeupdate = function() {
                 if (!audioElement.paused) {
-                    // Update current time
-                    document.getElementById('currentTime').innerText = formatTime(audioElement.currentTime);
+                    const currentFmt = formatTime(audioElement.currentTime);
+                    document.getElementById('currentTime').innerText = currentFmt;
+                    document.getElementById('fullCurrentTime').innerText = currentFmt;
                     
                     if (audioElement.duration && !isNaN(audioElement.duration) && audioElement.duration !== Infinity) {
                         const progress = (audioElement.currentTime / audioElement.duration) * 100;
                         document.getElementById('progressBar').value = progress || 0;
-                        // Pastikan durasi total selalu valid jika onloadedmetadata terlewat
-                        document.getElementById('totalDuration').innerText = formatTime(audioElement.duration);
+                        document.getElementById('fullProgressBar').value = progress || 0;
+                        
+                        const totalFmt = formatTime(audioElement.duration);
+                        document.getElementById('totalDuration').innerText = totalFmt;
+                        document.getElementById('fullTotalDuration').innerText = totalFmt;
                     }
                 }
             };
@@ -642,6 +753,20 @@
                 nextSong();
             };
         };
+
+        function openFullPlayer() {
+            const modal = document.getElementById('fullPlayerModal');
+            if (modal) {
+                modal.classList.remove('translate-y-full');
+            }
+        }
+
+        function closeFullPlayer() {
+            const modal = document.getElementById('fullPlayerModal');
+            if (modal) {
+                modal.classList.add('translate-y-full');
+            }
+        }
 
         function saveSongsToStorage() {
             localStorage.setItem('nf_songs', JSON.stringify(songs));
@@ -977,7 +1102,7 @@
             `).join('');
         }
 
-        // Diubah untuk mendukung pemutaran dalam konteks Playlist
+        // Diubah untuk mendukung pemutaran dalam konteks Playlist dan membuka Full Player
         function selectAndPlaySong(index, context = 'all', playlistId = null) {
             if (songs.length === 0) return;
             if (isRadioPlaying) {
@@ -1007,6 +1132,7 @@
             audioElement.play().then(() => {
                 isPlaying = true;
                 updatePlayerBar();
+                openFullPlayer(); // Menampilkan mode Fullscreen langsung saat dipilih
                 
                 // Render ulang tampilan agar indikator animasi bermain (equalizer bounce) muncul
                 if(currentTab === 'beranda') renderSongs();
@@ -1017,6 +1143,7 @@
                 showToast("Memutar audio.");
                 isPlaying = true;
                 updatePlayerBar();
+                openFullPlayer();
             });
         }
 
@@ -1080,11 +1207,16 @@
             selectAndPlaySong(prevRealIndex, isContextPlaylist ? 'playlist' : 'all', currentOpenPlaylistId);
         }
 
+        // Perbarui fungsi updatePlayerBar() agar selaras dengan tampilan Tampilan Fullscreen
         function updatePlayerBar() {
             if (songs.length === 0) {
                 document.getElementById('playerSongTitle').innerText = "Belum ada lagu";
                 document.getElementById('playerArtist').innerText = "Pilih atau unduh musik";
                 document.getElementById('totalDuration').innerText = "00:00";
+                
+                document.getElementById('fullSongTitle').innerText = "Belum ada lagu";
+                document.getElementById('fullSongArtist').innerText = "Pilih musik";
+                document.getElementById('fullTotalDuration').innerText = "00:00";
                 return;
             }
             const song = songs[currentSongIndex];
@@ -1092,15 +1224,51 @@
             document.getElementById('playerArtist').innerText = song.artist;
             document.getElementById('totalDuration').innerText = song.duration;
             
+            // Tampilan Fullscreen
+            document.getElementById('fullSongTitle').innerText = song.title;
+            document.getElementById('fullSongArtist').innerText = song.artist;
+            document.getElementById('fullTotalDuration').innerText = song.duration;
+
             const mainIcon = document.getElementById('mainPlayIcon');
-            mainIcon.className = isPlaying ? "fa-solid fa-pause text-sm md:text-base" : "fa-solid fa-play text-sm md:text-base ml-0.5";
+            const fullIcon = document.getElementById('fullPlayIcon');
+            const vinylDisk = document.getElementById('vinylDisk');
+            const toneArm = document.getElementById('toneArm');
+
+            if (isPlaying) {
+                mainIcon.className = "fa-solid fa-pause text-sm md:text-base";
+                if(fullIcon) fullIcon.className = "fa-solid fa-pause text-2xl ml-0";
+                if (vinylDisk) vinylDisk.classList.remove('animate-spin-paused');
+                if (toneArm) {
+                    toneArm.classList.remove('tonearm-paused');
+                    toneArm.classList.add('tonearm-playing');
+                }
+            } else {
+                mainIcon.className = "fa-solid fa-play text-sm md:text-base ml-0.5";
+                if(fullIcon) fullIcon.className = "fa-solid fa-play text-2xl ml-1";
+                if (vinylDisk) vinylDisk.classList.add('animate-spin-paused');
+                if (toneArm) {
+                    toneArm.classList.remove('tonearm-playing');
+                    toneArm.classList.add('tonearm-paused');
+                }
+            }
 
             const likeBtn = document.getElementById('playerLikeBtn');
             const likeBtnDesktop = document.getElementById('playerLikeBtnDesktop');
+            const fullLikeBtn = document.getElementById('fullLikeBtn');
             const likeHtml = `<i class="fa-${song.liked ? 'solid text-pink-500' : 'regular'} fa-heart text-base md:text-xl"></i>`;
             
             if (likeBtn) likeBtn.innerHTML = likeHtml;
             if (likeBtnDesktop) likeBtnDesktop.innerHTML = likeHtml;
+            if (fullLikeBtn) {
+                fullLikeBtn.innerHTML = `<i class="fa-${song.liked ? 'solid' : 'regular'} fa-heart"></i><span>${song.liked ? 'Tersimpan' : 'Simpan'}</span>`;
+                if(song.liked) {
+                    fullLikeBtn.classList.remove('text-white');
+                    fullLikeBtn.classList.add('text-pink-200');
+                } else {
+                    fullLikeBtn.classList.remove('text-pink-200');
+                    fullLikeBtn.classList.add('text-white');
+                }
+            }
         }
 
         function seekAudio(val) {
@@ -1135,11 +1303,15 @@
         function toggleShuffle() {
             isShuffle = !isShuffle;
             const btn = document.getElementById('shuffleBtn');
+            const fullBtn = document.getElementById('fullShuffleBtn');
+            
             if (isShuffle) {
-                btn.classList.add('text-pink-400', 'border-pink-500', 'bg-purple-900/30');
+                if(btn) btn.classList.add('text-pink-400', 'border-pink-500', 'bg-purple-900/30');
+                if(fullBtn) fullBtn.classList.add('text-pink-400');
                 showToast("Mode Acak Aktif");
             } else {
-                btn.classList.remove('text-pink-400', 'border-pink-500', 'bg-purple-900/30');
+                if(btn) btn.classList.remove('text-pink-400', 'border-pink-500', 'bg-purple-900/30');
+                if(fullBtn) fullBtn.classList.remove('text-pink-400');
                 showToast("Mode Acak Nonaktif");
             }
         }
